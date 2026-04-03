@@ -17,7 +17,7 @@ export const hashToken = (token: string): string => {
 };
 
 export const generateResetToken = () => {
-	const token = crypto.randomBytes(32).toString("hex");
+	const token = crypto.randomInt(0, 1000000).toString().padStart(6, "0");
 	const hashedToken = hashToken(token);
 
 	return { token, hashedToken };

@@ -6,10 +6,14 @@ export interface IUser extends Document {
 	userName: string;
 	email: string;
 	password: string;
-	googleId?: string;
-	profileImage?: string;
-	resetPasswordToken?: string;
-	resetPasswordExpires?: Date;
+	googleId: string | null;
+	profileImage: string;
+	resetPasswordToken: string | null;
+	resetPasswordExpires: Date | null;
+	resetAttempts: number;
+	resetBlockedUntil: Date | null;
+	loginAttempts: number;
+	loginBlockedUntil: Date | null;
 	createdAt: Date;
 }
 
@@ -24,6 +28,10 @@ const UserSchema: Schema = new Schema(
 		googleId: { type: String, required: false },
 		resetPasswordToken: { type: String, required: false },
 		resetPasswordExpires: { type: Date, required: false },
+		resetAttempts: { type: Number, default: 0 },
+		resetBlockedUntil: { type: Date, default: null },
+		loginAttempts: { type: Number, default: 0 },
+		loginBlockedUntil: { type: Date, default: null },
 	},
 	{ timestamps: true },
 );

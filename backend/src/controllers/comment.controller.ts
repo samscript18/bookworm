@@ -9,7 +9,7 @@ export const addComment = asyncHandler(async (req: Request, res: Response) => {
 	const parsed = addCommentSchema.safeParse(req.body);
 	if (!parsed.success) throw new UnprocessableEntity("Invalid comment data", ErrorCode.UNPROCESSABLE_ENTITY, parsed.error);
 
-	if (!req.user) throw new UnprocessableEntity("User not authenticated", ErrorCode.UNPROCESSABLE_ENTITY, {});
+	if (!req.user) throw new UnprocessableEntity("User not authenticated", ErrorCode.AUTH_REQUIRED, {});
 	const userId = req.user._id.toString();
 
 	const data: { book: string; user: string; content: string; parentComment?: string } = {
@@ -56,7 +56,7 @@ export const reactToComment = asyncHandler(async (req: Request, res: Response) =
 	const commentId = req.params.commentId;
 	if (!commentId || typeof commentId !== "string") throw new UnprocessableEntity("Invalid comment ID", ErrorCode.UNPROCESSABLE_ENTITY, {});
 
-	if (!req.user) throw new UnprocessableEntity("User not authenticated", ErrorCode.UNPROCESSABLE_ENTITY, {});
+	if (!req.user) throw new UnprocessableEntity("User not authenticated", ErrorCode.AUTH_REQUIRED, {});
 	const userId = req.user._id.toString();
 
 	const comment = await CommentService.reactToComment(commentId, userId);

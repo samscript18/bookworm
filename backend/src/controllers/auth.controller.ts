@@ -41,7 +41,7 @@ export const changePassword = asyncHandler(async (req: Request, res: Response) =
 	const parsed = changePasswordSchema.safeParse(req.body);
 	if (!parsed.success) throw new UnprocessableEntity("Validation error", ErrorCode.UNPROCESSABLE_ENTITY, parsed.error);
 
-	if (!req.user) throw new UnprocessableEntity("User not authenticated", ErrorCode.UNPROCESSABLE_ENTITY, {});
+	if (!req.user) throw new UnprocessableEntity("User not authenticated", ErrorCode.AUTH_REQUIRED, {});
 	const userId = req.user._id.toString();
 
 	const result = await AuthService.changePassword(parsed.data.currentPassword, parsed.data.newPassword, userId);
@@ -49,7 +49,7 @@ export const changePassword = asyncHandler(async (req: Request, res: Response) =
 });
 
 export const getProfile = asyncHandler(async (req: Request, res: Response) => {
-	if (!req.user) throw new UnprocessableEntity("User not authenticated", ErrorCode.UNPROCESSABLE_ENTITY, {});
+	if (!req.user) throw new UnprocessableEntity("User not authenticated", ErrorCode.AUTH_REQUIRED, {});
 	const userId = req.user._id.toString();
 
 	const result = await AuthService.getUserById(userId);
@@ -60,7 +60,7 @@ export const editProfile = asyncHandler(async (req: Request, res: Response) => {
 	const parsed = editProfileSchema.safeParse(req.body);
 	if (!parsed.success) throw new UnprocessableEntity("Validation error", ErrorCode.UNPROCESSABLE_ENTITY, parsed.error);
 
-	if (!req.user) throw new UnprocessableEntity("User not authenticated", ErrorCode.UNPROCESSABLE_ENTITY, {});
+	if (!req.user) throw new UnprocessableEntity("User not authenticated", ErrorCode.AUTH_REQUIRED, {});
 	const userId = req.user._id.toString();
 
 	const filteredData = Object.fromEntries(Object.entries(parsed.data).filter(([, v]) => v !== undefined));

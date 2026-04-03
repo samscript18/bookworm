@@ -9,5 +9,7 @@ const secrets = {
 	cloudinaryApiKey: <string>process.env.CLOUDINARY_API_KEY,
 	cloudinaryApiSecret: <string>process.env.CLOUDINARY_API_SECRET,
 	apiUrl: <string>process.env.API_URL,
+	mailerUser: <string>process.env.MAILER_USER,
+	mailerPass: <string>process.env.MAILER_PASS,
 };
 export default secrets;

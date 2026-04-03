@@ -4,17 +4,40 @@ import { errorHandler } from "./middleware/errorHandler";
 import dotenv from "dotenv";
 import { connectDB } from "./config/db";
 import { rootRouter } from "./routes";
+import rateLimit from "express-rate-limit";
+import helmet from "helmet";
+import cors from "cors";
 
 dotenv.config();
 
 const app: Express = express();
-app.use(express.json());
 
-app.use("/api", rootRouter);
+app.disable("x-powered-by");
+
+app.use(helmet());
+
+app.use(
+	cors({
+		origin: "*",
+	}),
+);
+
+app.use(express.json({ limit: "5mb" }));
+
+app.use(
+	rateLimit({
+		windowMs: 15 * 60 * 1000,
+		max: 100,
+		standardHeaders: true,
+		legacyHeaders: false,
+	}),
+);
 
 app.get("/", (req, res) => {
 	res.send("<h1>BookWorm API</h1>");
 });
+
+app.use("/api", rootRouter);
 
 app.use(errorHandler);
 

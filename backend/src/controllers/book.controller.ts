@@ -31,7 +31,7 @@ export const rateBook = asyncHandler(async (req: Request, res: Response) => {
 
 	const bookId = req.params.bookId;
 	if (!bookId || typeof bookId !== "string") throw new UnprocessableEntity("Invalid book ID", ErrorCode.UNPROCESSABLE_ENTITY, {});
-	if (!req.user) throw new UnprocessableEntity("User not authenticated", ErrorCode.UNPROCESSABLE_ENTITY, {});
+	if (!req.user) throw new UnprocessableEntity("User not authenticated", ErrorCode.AUTH_REQUIRED, {});
 	const userId = req.user._id.toString();
 	const book = await BookService.rateBook(bookId, userId, parsed.data.rating);
 
