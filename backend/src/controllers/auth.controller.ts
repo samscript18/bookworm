@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { asyncHandler } from "../middleware/asyncHandler";
 import { AuthService } from "../services/auth.service";
-import { registerSchema, loginSchema, editProfileSchema, forgotPasswordSchema, resetPasswordSchema, changePasswordSchema } from "../schemas/auth.schema";
+import { registerSchema, loginSchema, editProfileSchema, forgotPasswordSchema, resetPasswordSchema, changePasswordSchema, googleAuthSchema } from "../schemas/auth.schema";
 import { UnprocessableEntity } from "../exceptions/exceptions";
 import { ErrorCode } from "../exceptions/root";
 
@@ -19,6 +19,14 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
 
 	const result = await AuthService.login(parsed.data.email, parsed.data.password);
 	res.json({ success: true, message: "User logged in successfully", data: result });
+});
+
+export const googleAuth = asyncHandler(async (req: Request, res: Response) => {
+	const parsed = googleAuthSchema.safeParse(req.body);
+	if (!parsed.success) throw new UnprocessableEntity("Validation error", ErrorCode.UNPROCESSABLE_ENTITY, parsed.error);
+
+	const result = await AuthService.googleAuth(parsed.data.idToken);
+	return res.json({ success: true, message: "Google authentication successful", data: result });
 });
 
 export const forgotPassword = asyncHandler(async (req: Request, res: Response) => {

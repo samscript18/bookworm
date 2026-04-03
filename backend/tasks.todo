@@ -1,5 +1,3 @@
-"Add forgot password and change password functionality.";
-"Implement google authentication for user login.";
-"Rate limit authentication endpoints to prevent brute-force attacks.";
+"Implement google authentication for user.";
 "Implement notifications";
 "Add search and pagination to existing endpoints.";

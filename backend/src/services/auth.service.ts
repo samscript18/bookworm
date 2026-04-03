@@ -1,11 +1,33 @@
 import { IUser, User } from "../models/user.model";
 import { UnAuthorizedException, BadRequestsException, NotFoundException } from "../exceptions/exceptions";
 import { ErrorCode } from "../exceptions/root";
-import { comparePassword, generateResetToken, hashPassword, hashToken, jwtHelper, sanitizeUser } from "../utils/helpers/helper";
+import { comparePassword, generateResetToken, generateUniqueUsername, hashPassword, hashToken, jwtHelper, sanitizeUser } from "../utils/helpers/helper";
 import { transporter } from "../config/email";
 import secrets from "../constants/secrets.constant";
+import { OAuth2Client } from "google-auth-library";
 
 export class AuthService {
+	static client = new OAuth2Client(secrets.googleClientId);
+
+	static async createUniqueUsername(userData: { name: string; email: string }) {
+		let username = generateUniqueUsername(userData.name);
+		let isUnique = false;
+		let attempts = 0;
+
+		while (!isUnique && attempts < 5) {
+			const existingUser = await User.findOne({ userName: username });
+
+			if (!existingUser) {
+				isUnique = true;
+			} else {
+				username = generateUniqueUsername(userData.name);
+				attempts++;
+			}
+		}
+
+		return username;
+	}
+
 	static async register(firstName: string, lastName: string, userName: string, email: string, password: string, profileImage?: string) {
 		const existing = await User.findOne({ email });
 		if (existing) throw new BadRequestsException("Account already exists", ErrorCode.ALREADY_EXISTS);
@@ -37,6 +59,14 @@ export class AuthService {
 			throw new BadRequestsException("Account temporarily locked. Try later.", ErrorCode.TEMPORARILY_LOCKED);
 		}
 
+		if (!user.password && user.googleId) {
+			throw new BadRequestsException("Please log in with Google", ErrorCode.AUTH_REQUIRED);
+		}
+
+		if (!user.password) {
+			throw new BadRequestsException("Invalid Credentials", ErrorCode.INCORRECT_PASSWORD);
+		}
+
 		const valid = await comparePassword(password, user.password);
 		if (!valid) {
 			user.loginAttempts = (user.loginAttempts || 0) + 1;
@@ -57,6 +87,55 @@ export class AuthService {
 		const token = jwtHelper.generateToken(user._id.toString());
 		const returnedUser = sanitizeUser(user);
 		return { user: returnedUser, token };
+	}
+
+	static async googleAuth(idToken: string) {
+		try {
+			const ticket = await this.client.verifyIdToken({
+				idToken,
+				audience: secrets.googleClientId,
+			});
+
+			const payload = ticket.getPayload();
+			if (!payload) throw new BadRequestsException("Invalid token payload", ErrorCode.INVALID_GOOGLE_TOKEN);
+
+			const { sub: googleId, email, name, given_name, family_name, picture } = payload;
+
+			if (!email) {
+				throw new BadRequestsException("Google account has no email", ErrorCode.INVALID_GOOGLE_TOKEN);
+			}
+
+			let user = await User.findOne({ email });
+
+			if (user) {
+				if (user.password && user.googleId === null) {
+					throw new BadRequestsException("Please log in with email and password", ErrorCode.AUTH_REQUIRED);
+				}
+			} else {
+				const localPart = email.split("@")[0] ?? email;
+				const fullName = `${given_name ?? ""} ${family_name ?? ""}`.trim();
+				const baseName = name ?? (fullName || localPart);
+				const userName = await this.createUniqueUsername({ name: baseName, email });
+
+				const data = {
+					email,
+					firstName: given_name ?? "",
+					lastName: family_name ?? "",
+					userName,
+					googleId,
+					...(picture ? { profileImage: picture } : {}),
+				};
+
+				user = await User.create(data);
+			}
+
+			const token = jwtHelper.generateToken(user._id.toString());
+
+			return { token, user: sanitizeUser(user) };
+		} catch (error) {
+			console.error("[AuthService] Google auth failed:", error);
+			throw new BadRequestsException("Google authentication failed", ErrorCode.INVALID_GOOGLE_TOKEN);
+		}
 	}
 
 	static async getUserById(userId: string) {
@@ -131,6 +210,11 @@ export class AuthService {
 		}
 
 		const hashedPassword = await hashPassword(password);
+
+		if (user.password === hashedPassword) {
+			throw new BadRequestsException("New password cannot be the same as the old one.", ErrorCode.SAME_PASSWORD);
+		}
+
 		user.password = hashedPassword;
 		user.resetPasswordToken = null;
 		user.resetPasswordExpires = null;
@@ -144,6 +228,10 @@ export class AuthService {
 	static async changePassword(currentPassword: string, newPassword: string, userId: string) {
 		const user = await User.findById(userId);
 		if (!user) throw new NotFoundException("User not found", ErrorCode.NOT_FOUND);
+
+		if (!user.password || user.password === null) {
+			throw new BadRequestsException("Password change not allowed for Google-authenticated accounts", ErrorCode.UNAUTHORIZED);
+		}
 
 		const isMatch = await comparePassword(currentPassword, user.password);
 		if (!isMatch) throw new BadRequestsException("Invalid Credentials", ErrorCode.INCORRECT_PASSWORD);

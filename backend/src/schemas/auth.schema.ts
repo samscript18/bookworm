@@ -23,6 +23,10 @@ export const loginSchema = z.object({
 	password: z.string().min(1, "Invalid credentials"),
 });
 
+export const googleAuthSchema = z.object({
+	idToken: z.string().min(1, "idToken is required"),
+});
+
 export const forgotPasswordSchema = z.object({
 	email: z.email("Invalid credentials").trim().toLowerCase(),
 });

@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { asyncHandler } from "../middleware/asyncHandler";
 import { BookService } from "../services/book.service";
-import { createBookSchema, rateBookSchema } from "../schemas/book.schema";
+import { createBookSchema, getBooksSchema, rateBookSchema } from "../schemas/book.schema";
 import { UnprocessableEntity } from "../exceptions/exceptions";
 import { ErrorCode } from "../exceptions/root";
 
@@ -14,8 +14,13 @@ export const createBook = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const getAllBooks = asyncHandler(async (req: Request, res: Response) => {
-	const books = await BookService.getAllBooks();
-	res.json({ success: true, message: "All books fetched successfully", data: books });
+	const parsed = getBooksSchema.safeParse(req.query);
+	if (!parsed.success) throw new UnprocessableEntity("Invalid query parameters", ErrorCode.UNPROCESSABLE_ENTITY, parsed.error);
+
+	const query = { page: parsed.data.page ?? 1, limit: parsed.data.limit ?? 20, search: parsed.data.search ?? "" };
+
+	const result = await BookService.getAllBooks(query);
+	res.json({ success: true, message: "All books fetched successfully", data: result });
 });
 
 export const getBookById = asyncHandler(async (req: Request, res: Response) => {

@@ -23,6 +23,17 @@ export const generateResetToken = () => {
 	return { token, hashedToken };
 };
 
+export const generateUniqueUsername = (baseName: string): string => {
+	const cleanName = baseName
+		.toLowerCase()
+		.replace(/\s+/g, "")
+		.replace(/[^a-z0-9]/g, "");
+
+	const suffix = crypto.randomBytes(2).toString("hex");
+
+	return `${cleanName}${suffix}`;
+};
+
 class JWT {
 	private get secret(): string {
 		return secrets.jwtSecret;

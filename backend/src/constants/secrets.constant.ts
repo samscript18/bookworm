@@ -1,6 +1,7 @@
 import { config } from "dotenv";
 
 config();
+
 const secrets = {
 	port: <number | string>process.env.PORT,
 	mongoUri: <string>process.env.MONGO_URI,
@@ -11,5 +12,7 @@ const secrets = {
 	apiUrl: <string>process.env.API_URL,
 	mailerUser: <string>process.env.MAILER_USER,
 	mailerPass: <string>process.env.MAILER_PASS,
+	googleClientId: <string>process.env.GOOGLE_CLIENT_ID,
+	googleClientSecret: <string>process.env.GOOGLE_CLIENT_SECRET,
 };
 export default secrets;

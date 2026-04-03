@@ -1,14 +1,11 @@
 import express, { Express } from "express";
 import secrets from "./constants/secrets.constant";
 import { errorHandler } from "./middleware/errorHandler";
-import dotenv from "dotenv";
 import { connectDB } from "./config/db";
 import { rootRouter } from "./routes";
 import rateLimit from "express-rate-limit";
 import helmet from "helmet";
 import cors from "cors";
-
-dotenv.config();
 
 const app: Express = express();
 

@@ -5,7 +5,7 @@ export interface IUser extends Document {
 	lastName: string;
 	userName: string;
 	email: string;
-	password: string;
+	password: string | null;
 	googleId: string | null;
 	profileImage: string;
 	resetPasswordToken: string | null;
@@ -23,8 +23,8 @@ const UserSchema: Schema = new Schema(
 		lastName: { type: String, required: true },
 		userName: { type: String, required: true, unique: true },
 		email: { type: String, required: true, unique: true },
-		password: { type: String, required: true },
-		profileImage: { type: String, required: false, default: "https://res.cloudinary.com/dynopc0cn/image/upload/v1775118766/default-image_cucpzx.avif" },
+		password: { type: String, required: false, default: null },
+		profileImage: { type: String, default: "https://res.cloudinary.com/dynopc0cn/image/upload/v1775118766/default-image_cucpzx.avif" },
 		googleId: { type: String, required: false },
 		resetPasswordToken: { type: String, required: false },
 		resetPasswordExpires: { type: Date, required: false },
