@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { asyncHandler } from "../middleware/asyncHandler";
 import { AuthService } from "../services/auth.service";
-import { registerSchema, loginSchema, editProfileSchema } from "../schemas/auth.schema";
+import { registerSchema, loginSchema, editProfileSchema, forgotPasswordSchema, resetPasswordSchema, changePasswordSchema } from "../schemas/auth.schema";
 import { UnprocessableEntity } from "../exceptions/exceptions";
 import { ErrorCode } from "../exceptions/root";
 
@@ -19,6 +19,33 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
 
 	const result = await AuthService.login(parsed.data.email, parsed.data.password);
 	res.json({ success: true, message: "User logged in successfully", data: result });
+});
+
+export const forgotPassword = asyncHandler(async (req: Request, res: Response) => {
+	const parsed = forgotPasswordSchema.safeParse(req.body);
+	if (!parsed.success) throw new UnprocessableEntity("Validation error", ErrorCode.UNPROCESSABLE_ENTITY, parsed.error);
+
+	const result = await AuthService.forgotPassword(parsed.data.email);
+	res.json({ success: true, message: result.message });
+});
+
+export const resetPassword = asyncHandler(async (req: Request, res: Response) => {
+	const parsed = resetPasswordSchema.safeParse(req.body);
+	if (!parsed.success) throw new UnprocessableEntity("Validation error", ErrorCode.UNPROCESSABLE_ENTITY, parsed.error);
+
+	const result = await AuthService.resetPassword(parsed.data.token, parsed.data.password);
+	res.json({ success: true, message: result.message });
+});
+
+export const changePassword = asyncHandler(async (req: Request, res: Response) => {
+	const parsed = changePasswordSchema.safeParse(req.body);
+	if (!parsed.success) throw new UnprocessableEntity("Validation error", ErrorCode.UNPROCESSABLE_ENTITY, parsed.error);
+
+	if (!req.user) throw new UnprocessableEntity("User not authenticated", ErrorCode.UNPROCESSABLE_ENTITY, {});
+	const userId = req.user._id.toString();
+
+	const result = await AuthService.changePassword(parsed.data.currentPassword, parsed.data.newPassword, userId);
+	res.json({ success: true, message: result.message });
 });
 
 export const getProfile = asyncHandler(async (req: Request, res: Response) => {

@@ -2,6 +2,7 @@ import bcrypt from "bcryptjs";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import secrets from "../../constants/secrets.constant";
 import { UserDocument } from "../../models/user.model";
+import crypto from "crypto";
 
 export async function hashPassword(password: string): Promise<string> {
 	return bcrypt.hash(password, 12);
@@ -10,6 +11,17 @@ export async function hashPassword(password: string): Promise<string> {
 export async function comparePassword(password: string, hashedPassword: string): Promise<boolean> {
 	return bcrypt.compare(password, hashedPassword);
 }
+
+export const hashToken = (token: string): string => {
+	return crypto.createHash("sha256").update(token).digest("hex");
+};
+
+export const generateResetToken = () => {
+	const token = crypto.randomBytes(32).toString("hex");
+	const hashedToken = hashToken(token);
+
+	return { token, hashedToken };
+};
 
 class JWT {
 	private get secret(): string {
