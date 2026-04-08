@@ -1,4 +1,4 @@
-import { IUser, User } from "../models/user.model";
+import { User } from "../models/user.model";
 import { UnAuthorizedException, BadRequestsException, NotFoundException } from "../exceptions/exceptions";
 import { ErrorCode } from "../exceptions/root";
 import { comparePassword, generateResetToken, generateUniqueUsername, hashPassword, hashToken, jwtHelper, sanitizeUser } from "../utils/helpers/helper";
@@ -28,23 +28,27 @@ export class AuthService {
 		return username;
 	}
 
-	static async register(firstName: string, lastName: string, userName: string, email: string, password: string, profileImage?: string) {
-		const existing = await User.findOne({ email });
+	static async register(data: { firstName: string; lastName: string; userName: string; email: string; password: string; profileImage?: string; bio?: string }) {
+		const existing = await User.findOne({ email: data.email });
 		if (existing) throw new BadRequestsException("Account already exists", ErrorCode.ALREADY_EXISTS);
 
-		const hashedPassword = await hashPassword(password);
-		const data: {
+		const hashedPassword = await hashPassword(data.password);
+		const userData: {
 			firstName: string;
 			lastName: string;
 			userName: string;
 			email: string;
 			password: string;
 			profileImage?: string;
-		} = { firstName, lastName, userName, email, password: hashedPassword };
-		if (profileImage) {
-			data.profileImage = profileImage;
+			bio?: string;
+		} = { firstName: data.firstName, lastName: data.lastName, userName: data.userName, email: data.email, password: hashedPassword };
+		if (data.profileImage) {
+			userData.profileImage = data.profileImage;
 		}
-		const user = await User.create(data);
+		if (data.bio) {
+			userData.bio = data.bio;
+		}
+		const user = await User.create(userData);
 
 		const token = jwtHelper.generateToken(user._id.toString());
 		const returnedUser = sanitizeUser(user);
@@ -138,18 +142,6 @@ export class AuthService {
 		}
 	}
 
-	static async getUserById(userId: string) {
-		const user = await User.findById(userId);
-		if (!user) throw new NotFoundException("User not found", ErrorCode.NOT_FOUND);
-		return sanitizeUser(user);
-	}
-
-	static async editUser(userId: string, data: Partial<IUser>) {
-		const user = await User.findByIdAndUpdate(userId, data, { returnDocument: "after" });
-		if (!user) throw new NotFoundException("User not found", ErrorCode.NOT_FOUND);
-		return sanitizeUser(user);
-	}
-
 	static async forgotPassword(email: string) {
 		const user = await User.findOne({ email });
 		if (!user) throw new NotFoundException("Invalid Credentials", ErrorCode.NOT_FOUND);
@@ -223,26 +215,5 @@ export class AuthService {
 		await user.save();
 
 		return { message: "Password reset successful" };
-	}
-
-	static async changePassword(currentPassword: string, newPassword: string, userId: string) {
-		const user = await User.findById(userId);
-		if (!user) throw new NotFoundException("User not found", ErrorCode.NOT_FOUND);
-
-		if (!user.password || user.password === null) {
-			throw new BadRequestsException("Password change not allowed for Google-authenticated accounts", ErrorCode.UNAUTHORIZED);
-		}
-
-		const isMatch = await comparePassword(currentPassword, user.password);
-		if (!isMatch) throw new BadRequestsException("Invalid Credentials", ErrorCode.INCORRECT_PASSWORD);
-
-		if (currentPassword === newPassword) {
-			throw new BadRequestsException("New password cannot be the same as the old one.", ErrorCode.SAME_PASSWORD);
-		}
-
-		user.password = await hashPassword(newPassword);
-		await user.save();
-
-		return { message: "Password changed successfully" };
 	}
 }

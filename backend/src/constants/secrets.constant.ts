@@ -14,5 +14,8 @@ const secrets = {
 	mailerPass: <string>process.env.MAILER_PASS,
 	googleClientId: <string>process.env.GOOGLE_CLIENT_ID,
 	googleClientSecret: <string>process.env.GOOGLE_CLIENT_SECRET,
+	firebaseProjectId: <string>process.env.FIREBASE_PROJECT_ID,
+	firebasePrivateKey: <string>process.env.FIREBASE_PRIVATE_KEY,
+	firebaseClientEmail: <string>process.env.FIREBASE_CLIENT_EMAIL,
 };
 export default secrets;

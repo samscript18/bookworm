@@ -3,6 +3,7 @@ import jwt, { JwtPayload } from "jsonwebtoken";
 import secrets from "../../constants/secrets.constant";
 import { UserDocument } from "../../models/user.model";
 import crypto from "crypto";
+import { PaginationQuery } from "../../types/pagination.type"; 
 
 export async function hashPassword(password: string): Promise<string> {
 	return bcrypt.hash(password, 12);
@@ -62,20 +63,16 @@ export const sanitizeUser = (user: UserDocument) => {
 	return sanitized;
 };
 
-export function resolvePagination(count: number, pageQuery?: number, limitQuery?: number) {
-	const page = Math.max(1, pageQuery || 1);
-	const limit = Math.min(Math.max(1, limitQuery || 10), 100);
-
-	const skip = (page - 1) * limit;
+export function getPaginationData(query: PaginationQuery, count: number) {
+	const skip = typeof query?.page === "number" ? query.page : 1;
+	let limit = query?.limit ?? 30;
+	const offset = (skip - 1) * limit;
 	const totalPages = Math.ceil(count / limit);
+	if (query?.limit === 0 && count === 0) limit++;
 
 	return {
-		skip,
-		page,
 		limit,
+		offset,
 		totalPages,
-		totalItems: count,
-		hasNextPage: page < totalPages,
-		hasPrevPage: page > 1,
 	};
 }

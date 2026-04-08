@@ -6,6 +6,7 @@ import { rootRouter } from "./routes";
 import rateLimit from "express-rate-limit";
 import helmet from "helmet";
 import cors from "cors";
+import { setupSwagger } from "./docs/swagger";
 
 const app: Express = express();
 
@@ -36,6 +37,8 @@ app.get("/", (req, res) => {
 
 app.use("/api", rootRouter);
 
+setupSwagger(app);
+
 app.use(errorHandler);
 
 const startServer = async () => {
@@ -43,7 +46,7 @@ const startServer = async () => {
 		await connectDB();
 		const port = secrets.port;
 		app.listen(port, () => {
-			console.log(`⚡[server]: connected successfully on http://localhost:${port}`);
+			console.log(`⚡[server]: connected successfully on port ${port}`);
 		});
 	} catch (error) {
 		console.error("❌ Critical: Failed to start server:", error);

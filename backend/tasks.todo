@@ -1,3 +1,2 @@
-"Implement google authentication for user.";
-"Implement notifications";
-"Add search and pagination to existing endpoints.";
+"Create dtos for each collections";
+"Improve delete comment functionality, e.g, If a comment has multiple nested replies (depth > 1)"
