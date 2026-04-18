@@ -1,2 +1,3 @@
+"Create endpoints to check for email and username existence"
 "Create dtos for each collections. Refactor everything sha basically";
 "Improve delete comment functionality, e.g, If a comment has multiple nested replies (depth > 1)"

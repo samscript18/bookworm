@@ -49,7 +49,7 @@ const UserSchema: Schema = new Schema(
 		followers: [{ type: Schema.Types.ObjectId, ref: "User" }],
 		following: [{ type: Schema.Types.ObjectId, ref: "User" }],
 		savedBooks: [{ type: Schema.Types.ObjectId, ref: "Book" }],
-		googleId: { type: String, required: false, unique: true, default: null },
+		googleId: { type: String, required: false, default: null },
 		resetPasswordToken: { type: String, required: false },
 		resetPasswordExpires: { type: Date, required: false },
 		resetAttempts: { type: Number, default: 0 },

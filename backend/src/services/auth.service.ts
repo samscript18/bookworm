@@ -1,4 +1,4 @@
-import { User } from "../models/user.model";
+import { User, UserDocument } from "../models/user.model";
 import { UnAuthorizedException, BadRequestsException, NotFoundException } from "../exceptions/exceptions";
 import { ErrorCode } from "../exceptions/root";
 import { comparePassword, generateResetToken, generateUniqueUsername, hashPassword, hashToken, jwtHelper, sanitizeUser } from "../utils/helpers/helper";
@@ -48,9 +48,10 @@ export class AuthService {
 		if (data.bio) {
 			userData.bio = data.bio;
 		}
+
 		const user = await User.create(userData);
 
-		const token = jwtHelper.generateToken(user._id.toString());
+		const token = jwtHelper.generateToken(user?._id.toString());
 		const returnedUser = sanitizeUser(user);
 		return { user: returnedUser, token };
 	}

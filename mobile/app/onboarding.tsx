@@ -7,7 +7,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 const { width, height } = Dimensions.get("window");
 
-export default function Onboarding() {
+const Onboarding = () => {
 	const router = useRouter();
 	const setHasCompletedOnboarding = useAuthStore((state) => state.setHasCompletedOnboarding);
 	const [currentIndex, setCurrentIndex] = useState(0);
@@ -30,9 +30,9 @@ export default function Onboarding() {
 
 	return (
 		<SafeAreaView className="flex-1 bg-white dark:bg-zinc-950">
-			<View className="mt-5 flex-row justify-center">
+			<View className="mt-6 flex-row justify-center">
 				{OnboardingSlides.map((_, i) => (
-					<View key={i} className={`mx-1 h-1.5 rounded-full ${currentIndex === i ? "w-10 bg-violet-600 dark:bg-violet-400" : "w-5 bg-zinc-200 dark:bg-zinc-700"}`} />
+					<View key={i} className={`mx-1 h-1.5 rounded-full ${currentIndex === i ? "w-16 bg-violet-600 dark:bg-violet-400" : "w-7 bg-zinc-200 dark:bg-zinc-700"}`} />
 				))}
 			</View>
 
@@ -49,7 +49,7 @@ export default function Onboarding() {
 					<View className="items-center px-10 pt-14" style={{ width }}>
 						<Image source={{ uri: item.image }} style={{ width: width * 0.8, height: height * 0.4 }} resizeMode="contain" />
 						<Text className="mt-14 text-center text-3xl font-bold text-zinc-900 dark:text-zinc-100">{item.title}</Text>
-						<Text className="mt-4 text-center text-[17px] leading-6 text-zinc-500 dark:text-zinc-400">{item.description}</Text>
+						<Text className="mt-4 text-center text-base leading-6 text-zinc-500 dark:text-zinc-400">{item.description}</Text>
 					</View>
 				)}
 			/>
@@ -61,4 +61,6 @@ export default function Onboarding() {
 			</View>
 		</SafeAreaView>
 	);
-}
+};
+
+export default Onboarding;

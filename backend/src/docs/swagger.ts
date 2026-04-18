@@ -720,7 +720,7 @@ const swaggerSpec = {
 			post: {
 				tags: ["Upload"],
 				summary: "Upload one image",
-				security: [{ bearerAuth: [] }],
+				// security: [{ bearerAuth: [] }],
 				requestBody: {
 					required: true,
 					content: {
@@ -754,7 +754,7 @@ const swaggerSpec = {
 			post: {
 				tags: ["Upload"],
 				summary: "Upload multiple images (max 5)",
-				security: [{ bearerAuth: [] }],
+				// security: [{ bearerAuth: [] }],
 				requestBody: {
 					required: true,
 					content: {
