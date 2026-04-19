@@ -51,6 +51,21 @@ const Login = () => {
 	const { mutateAsync: signIn, isPending: isSigningIn } = useMutation({
 		mutationKey: ["auth", "google"],
 		mutationFn: googleAuth,
+		onSuccess(data) {
+			setAccessToken(data.token as string);
+			setUser({
+				_id: data.user._id,
+				firstName: data.user.firstName,
+				lastName: data.user.lastName,
+				userName: data.user.userName,
+				email: data.user.email,
+				bio: data.user.bio,
+				profileImage: data.user.profileImage,
+				createdAt: data.user.createdAt,
+				updatedAt: data.user.updatedAt,
+			} as User);
+			setIsAuthenticated(true);
+		},
 	});
 
 	const onSubmit = async (data: LoginType) => {

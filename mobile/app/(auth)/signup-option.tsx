@@ -7,11 +7,12 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { googleAuth } from "@/lib/services/auth.service";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "@/lib/utils/toast";
+import { User } from "@/types/user/user";
 
 const SignUpOption = () => {
 	const router = useRouter();
 	const isDark = useColorScheme() === "dark";
-	const { setRegistrationStep } = useAuthStore();
+	const { setRegistrationStep, setAccessToken, setIsAuthenticated, setUser } = useAuthStore();
 
 	const handleEmailSignUp = () => {
 		setRegistrationStep(1);
@@ -21,6 +22,21 @@ const SignUpOption = () => {
 	const { mutateAsync: signUp, isPending: isSigningUp } = useMutation({
 		mutationKey: ["auth", "google"],
 		mutationFn: googleAuth,
+		onSuccess(data) {
+			setAccessToken(data.token as string);
+			setUser({
+				_id: data.user._id,
+				firstName: data.user.firstName,
+				lastName: data.user.lastName,
+				userName: data.user.userName,
+				email: data.user.email,
+				bio: data.user.bio,
+				profileImage: data.user.profileImage,
+				createdAt: data.user.createdAt,
+				updatedAt: data.user.updatedAt,
+			} as User);
+			setIsAuthenticated(true);
+		},
 	});
 
 	const handleGoogleSignUp = async () => {

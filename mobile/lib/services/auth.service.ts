@@ -49,7 +49,9 @@ export const googleAuth = async () => {
 	const { idToken } = await signInWithGoogle();
 
 	try {
-		await publicApi.post<ApiResponse<{ user: User; token: string }>>("/auth/google", { idToken } as GoogleAuthDto);
+		const response = await publicApi.post<ApiResponse<{ user: User; token: string }>>("/auth/google", { idToken } as GoogleAuthDto);
+
+		return response.data.data;
 	} catch (error) {
 		errorHandler(error as AxiosErrorShape | string);
 		throw error;
