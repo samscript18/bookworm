@@ -1,39 +1,48 @@
 import React, { useEffect } from "react";
 import { Redirect } from "expo-router";
+import { useMutation } from "@tanstack/react-query";
+
 import { useAuthStore } from "@/store/useAuthStore";
 import { requestNotificationPermission, setupNotificationListeners } from "@/lib/config/notification";
-import { useMutation } from "@tanstack/react-query";
+
 import { updateFcmToken } from "@/lib/services/user.service";
 import { syncFcmToken } from "@/lib/utils/syncFromToken";
 
 const Index = () => {
 	const { hasCompletedOnboarding, isAuthenticated } = useAuthStore();
 
-	const { mutate: _updateFcmToken } = useMutation({
+	const { mutate: updateToken } = useMutation({
 		mutationKey: ["user", "update-fcm-token"],
 		mutationFn: updateFcmToken,
 	});
 
 	useEffect(() => {
-		const init = async () => {
+		let isMounted = true;
+
+		const initNotifications = async () => {
 			try {
 				const token = await requestNotificationPermission();
-				if (token) {
-					syncFcmToken(token, _updateFcmToken);
+
+				if (token && isMounted) {
+					syncFcmToken(token, updateToken);
+					console.log("🔥 FCM Token:", token);
 				}
-				console.log("FCM Token:", token);
 			} catch (error) {
-				console.error("Failed to initialize notifications", error);
+				console.error("Notification init failed:", error);
 			}
 		};
 
-		init();
-		const cleanup = setupNotificationListeners((token: string) => {
-			syncFcmToken(token, _updateFcmToken);
+		initNotifications();
+
+		const cleanup = setupNotificationListeners((newToken: string) => {
+			syncFcmToken(newToken, updateToken);
 		});
 
-		return cleanup;
-	}, [_updateFcmToken]);
+		return () => {
+			isMounted = false;
+			cleanup?.();
+		};
+	}, [updateToken]);
 
 	if (!hasCompletedOnboarding) {
 		return <Redirect href="/onboarding" />;

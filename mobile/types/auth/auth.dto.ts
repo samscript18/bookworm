@@ -21,3 +21,7 @@ export type ResetPasswordDto = {
 	token: string;
 	password: string;
 };
+
+export type GoogleAuthDto = {
+	idToken: string;
+};

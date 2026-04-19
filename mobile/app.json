@@ -5,14 +5,30 @@
 		"version": "1.0.0",
 		"orientation": "portrait",
 		"icon": "./assets/images/icon.png",
-		"scheme": "bookworm",
 		"userInterfaceStyle": "automatic",
 		"newArchEnabled": true,
 		"ios": {
+			"googleServicesFile": "./GoogleService-Info.plist",
 			"supportsTablet": true,
-			"bundleIdentifier": "com.anonymous.bookworm"
+			"bundleIdentifier": "com.anonymous.bookworm",
+			"entitlements": {
+				"aps-environment": "development"
+			},
+			"config": {
+				"googleSignIn": {
+					"reservedClientId": "com.googleusercontent.apps.627593654072-p77siv43d2ilgiimlhh90me27krld11k"
+				}
+			},
+			"infoPlist": {
+				"CFBundleURLTypes": [
+					{
+						"CFBundleURLSchemes": ["com.googleusercontent.apps.627593654072-p77siv43d2ilgiimlhh90me27krld11k"]
+					}
+				]
+			}
 		},
 		"android": {
+			"googleServicesFile": "./google-services.json",
 			"adaptiveIcon": {
 				"backgroundColor": "#E6F4FE",
 				"foregroundImage": "./assets/images/icon.png",
@@ -31,6 +47,7 @@
 		"plugins": [
 			"expo-router",
 			"@react-native-firebase/app",
+			"./plugins/withModularHeaders",
 			[
 				"expo-splash-screen",
 				{

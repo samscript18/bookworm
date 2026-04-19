@@ -1,9 +1,12 @@
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { View, Text, TouchableOpacity, useColorScheme, Alert } from "react-native";
+import { View, Text, TouchableOpacity, useColorScheme, Alert, ActivityIndicator } from "react-native";
 import Logo from "@/components/ui/logo";
 import { useAuthStore } from "@/store/useAuthStore";
+import { googleAuth } from "@/lib/services/auth.service";
+import { useMutation } from "@tanstack/react-query";
+import { toast } from "@/lib/utils/toast";
 
 const SignUpOption = () => {
 	const router = useRouter();
@@ -15,8 +18,20 @@ const SignUpOption = () => {
 		router.push("/(auth)/signup");
 	};
 
-	const handleGoogleSignUp = () => {
-		Alert.alert("Google signup", "Google signup is available on this screen now, but the mobile Google auth flow is not wired yet.");
+	const { mutateAsync: signUp, isPending: isSigningUp } = useMutation({
+		mutationKey: ["auth", "google"],
+		mutationFn: googleAuth,
+	});
+
+	const handleGoogleSignUp = async () => {
+		try {
+			await signUp();
+			toast.success("Signed up with Google successfully");
+			router.push("/(dashboard)/home");
+		} catch (error) {
+			console.log("Google sign-up failed", error);
+			router.push("/(auth)/signup-option");
+		}
 	};
 
 	return (
@@ -45,11 +60,15 @@ const SignUpOption = () => {
 					</View>
 				</TouchableOpacity>
 
-				<TouchableOpacity onPress={handleGoogleSignUp} className="rounded-3xl border border-gray-200 bg-white p-5 dark:border-zinc-700 dark:bg-zinc-900">
+				<TouchableOpacity onPress={handleGoogleSignUp} className="rounded-3xl border border-gray-200 bg-white p-5 dark:border-zinc-700 dark:bg-zinc-900" disabled={isSigningUp}>
 					<View className="flex-row items-center">
-						<View className="h-12 w-12 items-center justify-center rounded-2xl bg-[#F5F5F5] dark:bg-zinc-800">
-							<Ionicons name="logo-google" size={22} color="#EA4335" />
-						</View>
+						{isSigningUp ? (
+							<ActivityIndicator size={20} />
+						) : (
+							<View className="h-12 w-12 items-center justify-center rounded-2xl bg-[#F5F5F5] dark:bg-zinc-800">
+								<Ionicons name="logo-google" size={22} color="#EA4335" />
+							</View>
+						)}
 						<View className="ml-4 flex-1">
 							<Text className="text-lg font-semibold text-[#161719] dark:text-zinc-100">Sign up with Google</Text>
 							<Text className="mt-1 text-sm text-[#6B7280] dark:text-zinc-400">Create your account faster with your Google profile</Text>

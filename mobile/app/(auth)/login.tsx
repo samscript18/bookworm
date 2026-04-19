@@ -9,7 +9,7 @@ import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { loginSchema } from "@/schemas/auth.schema";
 import { useMutation } from "@tanstack/react-query";
-import { login } from "@/lib/services/auth.service";
+import { googleAuth, login } from "@/lib/services/auth.service";
 import { toast } from "@/lib/utils/toast";
 import { useAuthStore } from "@/store/useAuthStore";
 import { User } from "@/types/user/user";
@@ -48,6 +48,11 @@ const Login = () => {
 		},
 	});
 
+	const { mutateAsync: signIn, isPending: isSigningIn } = useMutation({
+		mutationKey: ["auth", "google"],
+		mutationFn: googleAuth,
+	});
+
 	const onSubmit = async (data: LoginType) => {
 		try {
 			await _logIn(data);
@@ -55,6 +60,17 @@ const Login = () => {
 			router.push("/(dashboard)/home");
 		} catch (error) {
 			console.error("Failed to login", error);
+		}
+	};
+
+	const handleGoogleLogIn = async () => {
+		try {
+			await signIn();
+			toast.success("Signed in with Google successfully");
+			router.push("/(dashboard)/home");
+		} catch (error) {
+			console.log("Google sign-in failed", error);
+			router.push("/(auth)/login");
 		}
 	};
 
@@ -125,8 +141,8 @@ const Login = () => {
 						<View className="flex-1 h-[1px] bg-gray-300 dark:bg-zinc-700" />
 					</View>
 
-					<TouchableOpacity className="flex-row items-center justify-center rounded-2xl border border-gray-300 p-4 dark:border-zinc-700 dark:bg-zinc-900">
-						<Ionicons name="logo-google" size={24} color="red" />
+					<TouchableOpacity onPress={handleGoogleLogIn} className="flex-row items-center justify-center rounded-2xl border border-gray-300 p-4 dark:border-zinc-700 dark:bg-zinc-900" disabled={isSigningIn}>
+						{isSigningIn ? <ActivityIndicator size={20} /> : <Ionicons name="logo-google" size={24} color="red" />}
 						<Text className="ml-[10px] text-base text-[#161719] dark:text-zinc-100">Google</Text>
 					</TouchableOpacity>
 

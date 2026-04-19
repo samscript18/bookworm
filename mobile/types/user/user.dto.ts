@@ -1,3 +1,3 @@
-export type UpdateFcmTokenDto = {
+export type fcmTokenDto = {
 	fcmToken: string;
 };

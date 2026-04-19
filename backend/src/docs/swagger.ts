@@ -149,6 +149,34 @@ const swaggerSpec = {
 					bio: { type: "string", maxLength: 300 },
 				},
 			},
+			UpdatePreferencesRequest: {
+				type: "object",
+				properties: {
+					pushNotifications: { type: "boolean", example: true },
+					darkMode: { type: "boolean", example: false },
+				},
+			},
+			UpdatePreferencesSuccessResponse: {
+				type: "object",
+				properties: {
+					success: { type: "boolean", example: true },
+					message: { type: "string", example: "User preferences updated successfully" },
+					data: {
+						type: "object",
+						properties: {
+							pushNotifications: { type: "boolean", example: true },
+							darkMode: { type: "boolean", example: false },
+						},
+					},
+				},
+			},
+			FcmTokenRequest: {
+				type: "object",
+				required: ["fcmToken"],
+				properties: {
+					fcmToken: { type: "string", minLength: 10, example: "fcm_device_token_abc123xyz" },
+				},
+			},
 			CreateBookRequest: {
 				type: "object",
 				required: ["title", "author", "description", "coverImage"],
@@ -440,6 +468,54 @@ const swaggerSpec = {
 				responses: {
 					200: { description: "Password changed", content: { "application/json": { schema: { $ref: "#/components/schemas/MessageOnlySuccessResponse" } } } },
 					401: { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } },
+				},
+			},
+		},
+		"/users/me/preferences": {
+			patch: {
+				tags: ["Users"],
+				summary: "Update current user preferences",
+				security: [{ bearerAuth: [] }],
+				requestBody: {
+					required: true,
+					content: { "application/json": { schema: { $ref: "#/components/schemas/UpdatePreferencesRequest" } } },
+				},
+				responses: {
+					200: { description: "Preferences updated", content: { "application/json": { schema: { $ref: "#/components/schemas/UpdatePreferencesSuccessResponse" } } } },
+					401: { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } },
+					422: { description: "Validation error", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } },
+				},
+			},
+		},
+		"/users/me/update-fcm-token": {
+			post: {
+				tags: ["Users"],
+				summary: "Register a device FCM token",
+				security: [{ bearerAuth: [] }],
+				requestBody: {
+					required: true,
+					content: { "application/json": { schema: { $ref: "#/components/schemas/FcmTokenRequest" } } },
+				},
+				responses: {
+					200: { description: "Device token registered", content: { "application/json": { schema: { $ref: "#/components/schemas/MessageOnlySuccessResponse" } } } },
+					401: { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } },
+					422: { description: "Validation error", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } },
+				},
+			},
+		},
+		"/users/me/remove-fcm-token": {
+			delete: {
+				tags: ["Users"],
+				summary: "Remove a device FCM token",
+				security: [{ bearerAuth: [] }],
+				requestBody: {
+					required: true,
+					content: { "application/json": { schema: { $ref: "#/components/schemas/FcmTokenRequest" } } },
+				},
+				responses: {
+					200: { description: "Device token removed", content: { "application/json": { schema: { $ref: "#/components/schemas/MessageOnlySuccessResponse" } } } },
+					401: { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } },
+					422: { description: "Validation error", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } },
 				},
 			},
 		},
