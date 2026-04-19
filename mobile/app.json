@@ -4,34 +4,37 @@
 		"slug": "bookworm",
 		"version": "1.0.0",
 		"orientation": "portrait",
-		"icon": "./assets/images/icon.svg",
+		"icon": "./assets/images/icon.png",
 		"scheme": "bookworm",
 		"userInterfaceStyle": "automatic",
 		"newArchEnabled": true,
 		"ios": {
-			"supportsTablet": true
+			"supportsTablet": true,
+			"bundleIdentifier": "com.anonymous.bookworm"
 		},
 		"android": {
 			"adaptiveIcon": {
 				"backgroundColor": "#E6F4FE",
-				"foregroundImage": "./assets/images/icon.svg",
-				"backgroundImage": "./assets/images/icon.svg",
-				"monochromeImage": "./assets/images/icon.svg"
+				"foregroundImage": "./assets/images/icon.png",
+				"backgroundImage": "./assets/images/icon.png",
+				"monochromeImage": "./assets/images/icon.png"
 			},
 			"edgeToEdgeEnabled": true,
-			"predictiveBackGestureEnabled": false
+			"predictiveBackGestureEnabled": false,
+			"package": "com.anonymous.bookworm"
 		},
 		"web": {
 			"output": "static",
-			"favicon": "./assets/images/icon.svg",
+			"favicon": "./assets/images/icon.png",
 			"bundler": "metro"
 		},
 		"plugins": [
 			"expo-router",
+			"@react-native-firebase/app",
 			[
 				"expo-splash-screen",
 				{
-					"image": "./assets/images/icon.svg",
+					"image": "./assets/images/icon.png",
 					"imageWidth": 200,
 					"resizeMode": "contain",
 					"backgroundColor": "#ffffff",

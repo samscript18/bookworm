@@ -132,7 +132,7 @@ const Login = () => {
 
 					<Text className="mt-20 text-center text-base text-[#6B7280] dark:text-zinc-400">
 						Don't have an account?{" "}
-						<Link href="/(auth)/signup" className="font-bold text-violet-500">
+						<Link href="/(auth)/signup-option" className="font-bold text-violet-500">
 							Sign Up
 						</Link>
 					</Text>
