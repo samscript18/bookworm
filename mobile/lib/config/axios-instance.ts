@@ -24,7 +24,7 @@ export const authApi: AxiosInstance = axios.create({
 			delete headers["Content-Type"];
 			return data;
 		}
-		return data;
+		return JSON.stringify(data);
 	},
 });
 

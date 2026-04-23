@@ -5,6 +5,7 @@ import { StatusBar } from "expo-status-bar";
 import "./global.css";
 import { useEffect, useRef } from "react";
 import { useFonts } from "expo-font";
+import NotificationInitializer from "@/components/notification-intializer";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
@@ -26,11 +27,16 @@ export default function RootLayout() {
 
 	return (
 		<AppProvider>
+			<NotificationInitializer />
 			<StatusBar style="auto" />
 			<Stack screenOptions={{ headerShown: false }}>
 				<Stack.Screen name="index" />
 				<Stack.Screen name="onboarding" />
 				<Stack.Screen name="(auth)" options={{ animation: "fade" }} />
+				<Stack.Screen name="(tabs)" options={{ animation: "fade" }} />
+				<Stack.Screen name="book/[id]" options={{ animation: "fade" }} />
+				<Stack.Screen name="book/write-review" options={{ animation: "fade" }} />
+				<Stack.Screen name="category/[id]" options={{ animation: "fade" }} />
 			</Stack>
 		</AppProvider>
 	);

@@ -4,8 +4,8 @@ import { RegistrationDto } from "./auth.interface";
 export interface AuthState {
 	registrationData: RegistrationDto;
 	setRegistrationData: (data: Partial<RegistrationDto>) => void;
-	accessToken: string;
-	setAccessToken: (token: string) => void;
+	accessToken: string | null;
+	setAccessToken: (token: string | null) => void;
 	registrationStep: number;
 	setRegistrationStep: (step: number) => void;
 	hasCompletedOnboarding: boolean;

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, useColorScheme, KeyboardAvoidingView, Platform, ScrollView } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView } from "react-native";
 import { Link, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -11,11 +11,11 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { resetPassword } from "@/lib/services/auth.service";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "@/lib/utils/toast";
+import { useAppTheme } from "@/providers/theme";
 
 const ResetPassword = () => {
 	const router = useRouter();
-	const isDark = useColorScheme() === "dark";
-	const iconColor = isDark ? "#B8BCC8" : "#91919F";
+	const theme = useAppTheme();
 	const [showPassword, setShowPassword] = useState<boolean>(false);
 	const [showConfirm, setShowConfirm] = useState<boolean>(false);
 	const { forgotPasswordToken, setPasswordResetStep } = useAuthStore();
@@ -57,8 +57,8 @@ const ResetPassword = () => {
 	};
 
 	return (
-		<SafeAreaView className="flex-1 bg-white dark:bg-zinc-950 px-6 pt-8 py-12">
-			<KeyboardAvoidingView className="flex-1" behavior={Platform.OS === "ios" ? "padding" : undefined}>
+		<SafeAreaView className="flex-1 px-6 pt-8 py-12" style={{ backgroundColor: theme.colors.background }}>
+			<KeyboardAvoidingView className="flex-1" behavior={Platform.OS === "ios" ? "padding" : "height"}>
 				<ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
 					<TouchableOpacity
 						onPress={() => {
@@ -67,80 +67,114 @@ const ResetPassword = () => {
 						}}
 						className="mb-10"
 					>
-						<Ionicons name="chevron-back" size={28} color={isDark ? "#F4F5F7" : "#161719"} />
+						<Ionicons name="chevron-back" size={28} color={theme.colors.textPrimary} />
 					</TouchableOpacity>
 
 					<View className="items-center mb-8">
-						<View className="w-32 h-32 bg-violet-100 dark:bg-violet-950 rounded-full justify-center items-center">
-							<View className="w-16 h-16 bg-violet-600 rounded-2xl justify-center items-center shadow-lg">
-								<Ionicons name="lock-closed" size={30} color="#FFF" />
+						<View className="w-32 h-32 rounded-full justify-center items-center" style={{ backgroundColor: theme.colors.accentSurface }}>
+							<View className="w-16 h-16 rounded-2xl justify-center items-center" style={{ backgroundColor: theme.colors.primary }}>
+								<Ionicons name="lock-closed" size={30} color={theme.colors.onPrimary} />
 							</View>
 						</View>
 					</View>
 
-					<Text className="text-3xl font-bold text-[#161719] dark:text-zinc-100 text-center mb-4">Create New Password</Text>
-					<Text className="text-[#91919F] dark:text-zinc-400 text-base text-center px-4 mb-8 leading-6">Your new password must be different from previously used passwords.</Text>
+					<Text className="text-3xl font-bold text-center mb-4" style={{ color: theme.colors.textPrimary }}>
+						Create New Password
+					</Text>
+					<Text className="text-base text-center px-4 mb-8 leading-6" style={{ color: theme.colors.textSecondary }}>
+						Your new password must be different from previously used passwords.
+					</Text>
 
-					<Text className="text-[#161719] dark:text-zinc-100 text-base font-semibold mb-2">New Password</Text>
+					<Text className="text-base font-semibold mb-2" style={{ color: theme.colors.textPrimary }}>
+						New Password
+					</Text>
 					<Controller
 						control={control}
 						name="password"
 						render={({ field: { onChange, value } }) => (
 							<View>
 								<View
-									className={`flex-row items-center rounded-2xl bg-[#F6F6F6] dark:bg-zinc-900 ${Platform.OS === "ios" ? "p-6" : "p-3"} ${errors.password ? "border border-red-500" : "focus:border focus:border-violet-600"}`}
+									className={`flex-row items-center rounded-2xl ${Platform.OS === "ios" ? "p-6" : "p-3"}`}
+									style={{
+										backgroundColor: theme.colors.surfaceMuted,
+										borderWidth: 1,
+										borderColor: errors.password ? theme.colors.error : theme.colors.inputBorder,
+									}}
 								>
 									<TextInput
 										placeholder="Password"
-										placeholderTextColor={isDark ? "#8A8F9C" : "#91919F"}
+										placeholderTextColor={theme.colors.textMuted}
 										secureTextEntry={!showPassword}
-										className="flex-1 text-base text-[#161719] dark:text-zinc-100"
+										className="flex-1 text-base"
+										style={{ color: theme.colors.textPrimary }}
 										value={value}
 										onChangeText={onChange}
 									/>
-									<Ionicons name={showPassword ? "eye-outline" : "eye-off-outline"} size={20} color={iconColor} onPress={() => setShowPassword(!showPassword)} />
+									<Ionicons name={showPassword ? "eye-outline" : "eye-off-outline"} size={20} color={theme.colors.textSecondary} onPress={() => setShowPassword(!showPassword)} />
 								</View>
-								{errors.password && <Text className="mt-1 text-sm text-red-500">{errors.password.message}</Text>}
+								{errors.password && (
+									<Text className="mt-1 text-sm" style={{ color: theme.colors.error }}>
+										{errors.password.message}
+									</Text>
+								)}
 							</View>
 						)}
 					/>
 
-					<Text className="text-[#161719] dark:text-zinc-100 text-base font-semibold mt-4 mb-2">Confirm Password</Text>
+					<Text className="text-base font-semibold mt-4 mb-2" style={{ color: theme.colors.textPrimary }}>
+						Confirm Password
+					</Text>
 					<Controller
 						control={control}
 						name="confirmPassword"
 						render={({ field: { onChange, value } }) => (
 							<View>
 								<View
-									className={`flex-row items-center rounded-2xl bg-[#F6F6F6] dark:bg-zinc-900 ${Platform.OS === "ios" ? "p-6" : "p-3"} ${errors.confirmPassword ? "border border-red-500" : "focus:border focus:border-violet-600"}`}
+									className={`flex-row items-center rounded-2xl ${Platform.OS === "ios" ? "p-6" : "p-3"}`}
+									style={{
+										backgroundColor: theme.colors.surfaceMuted,
+										borderWidth: 1,
+										borderColor: errors.confirmPassword ? theme.colors.error : theme.colors.inputBorder,
+									}}
 								>
 									<TextInput
 										placeholder="Confirm Password"
-										placeholderTextColor={isDark ? "#8A8F9C" : "#91919F"}
+										placeholderTextColor={theme.colors.textMuted}
 										secureTextEntry={!showConfirm}
-										className="flex-1 text-base text-[#161719] dark:text-zinc-100"
+										className="flex-1 text-base"
+										style={{ color: theme.colors.textPrimary }}
 										value={value}
 										onChangeText={onChange}
 									/>
-									<Ionicons name={showConfirm ? "eye-outline" : "eye-off-outline"} size={20} color={iconColor} onPress={() => setShowConfirm(!showConfirm)} />
+									<Ionicons name={showConfirm ? "eye-outline" : "eye-off-outline"} size={20} color={theme.colors.textSecondary} onPress={() => setShowConfirm(!showConfirm)} />
 								</View>
 
 								{value && value !== watch("password") ? (
-									<Text className="mt-1 text-sm text-red-500">Passwords do not match</Text>
+									<Text className="mt-1 text-sm" style={{ color: theme.colors.error }}>
+										Passwords do not match
+									</Text>
 								) : (
-									errors.confirmPassword && <Text className="mt-1 text-sm text-red-500">{errors.confirmPassword.message}</Text>
+									errors.confirmPassword && (
+										<Text className="mt-1 text-sm" style={{ color: theme.colors.error }}>
+											{errors.confirmPassword.message}
+										</Text>
+									)
 								)}
 
-								<View className="my-6 rounded-2xl bg-violet-100 dark:bg-zinc-900 p-4 gap-3">
-									<Text className="mb-3 text-sm font-medium text-[#161719] dark:text-zinc-100">Password must contain:</Text>
+								<View className="my-6 rounded-2xl p-4 gap-3" style={{ backgroundColor: theme.colors.accentSurface }}>
+									<Text className="mb-3 text-sm font-medium" style={{ color: theme.colors.textPrimary }}>
+										Password must contain:
+									</Text>
 									{passwordRequirements.map((item) => (
 										<View key={item.label} className="mb-3 flex-row items-center last:mb-0">
 											<Ionicons
 												name={item.met ? "checkmark-circle" : "ellipse-outline"}
 												size={20}
-												color={item.met ? "#7C3AED" : isDark ? "#52525B" : "#C4C7D2"}
+												color={item.met ? theme.colors.primary : theme.colors.textMuted}
 											/>
-											<Text className={`ml-3 text-sm ${item.met ? "text-[#161719] dark:text-zinc-100" : "text-[#91919F] dark:text-zinc-400"}`}>{item.label}</Text>
+											<Text className="ml-3 text-sm" style={{ color: item.met ? theme.colors.textPrimary : theme.colors.textSecondary }}>
+												{item.label}
+											</Text>
 										</View>
 									))}
 								</View>
@@ -148,13 +182,19 @@ const ResetPassword = () => {
 						)}
 					/>
 
-					<TouchableOpacity onPress={handleSubmit(onSubmit)} className="py-4 rounded-2xl items-center bg-violet-600" disabled={isSubmitting}>
-						{isSubmitting ? <ActivityIndicator size={20} color="#FFF" /> : <Text className="text-white text-lg font-bold">Reset Password</Text>}
+					<TouchableOpacity onPress={handleSubmit(onSubmit)} className="py-4 rounded-2xl items-center" style={{ backgroundColor: theme.colors.primary }} disabled={isSubmitting}>
+						{isSubmitting ? (
+							<ActivityIndicator size={20} color={theme.colors.onPrimary} />
+						) : (
+							<Text className="text-lg font-bold" style={{ color: theme.colors.onPrimary }}>
+								Reset Password
+							</Text>
+						)}
 					</TouchableOpacity>
 
-					<Text className="text-center text-base text-[#91919F] dark:text-zinc-400 mt-8">
+					<Text className="text-center text-base mt-8" style={{ color: theme.colors.textSecondary }}>
 						Remember your password?{" "}
-						<Link href="/(auth)/login" className="text-violet-500 font-bold">
+						<Link href="/(auth)/login" className="font-bold" style={{ color: theme.colors.primary }}>
 							Back to Login
 						</Link>
 					</Text>

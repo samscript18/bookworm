@@ -1,4 +1,4 @@
-import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, KeyboardAvoidingView, Platform, useColorScheme } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, KeyboardAvoidingView, Platform } from "react-native";
 import { Link, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import Logo from "@/components/ui/logo";
@@ -13,12 +13,12 @@ import { googleAuth, login } from "@/lib/services/auth.service";
 import { toast } from "@/lib/utils/toast";
 import { useAuthStore } from "@/store/useAuthStore";
 import { User } from "@/types/user/user";
+import { useAppTheme } from "@/providers/theme";
 
 const Login = () => {
 	const router = useRouter();
 	const [showPassword, setShowPassword] = useState<boolean>(true);
-	const isDark = useColorScheme() === "dark";
-	const iconColor = isDark ? "#B8BCC8" : "#91919F";
+	const theme = useAppTheme();
 
 	const {
 		handleSubmit,
@@ -72,7 +72,7 @@ const Login = () => {
 		try {
 			await _logIn(data);
 			toast.success("Signed in successfully");
-			router.push("/(dashboard)/home");
+			router.push("/(tabs)/home");
 		} catch (error) {
 			console.error("Failed to login", error);
 		}
@@ -82,7 +82,7 @@ const Login = () => {
 		try {
 			await signIn();
 			toast.success("Signed in with Google successfully");
-			router.push("/(dashboard)/home");
+			router.push("/(tabs)/home");
 		} catch (error) {
 			console.log("Google sign-in failed", error);
 			router.push("/(auth)/login");
@@ -90,13 +90,19 @@ const Login = () => {
 	};
 
 	return (
-		<SafeAreaView className="flex-1 bg-white dark:bg-zinc-950 px-5 py-6">
-			<KeyboardAvoidingView className="flex-1" behavior={Platform.OS === "ios" ? "padding" : undefined}>
+		<SafeAreaView className="flex-1 px-5 py-6" style={{ backgroundColor: theme.colors.background }}>
+			<KeyboardAvoidingView className="flex-1" behavior={Platform.OS === "ios" ? "padding" : "height"}>
 				<View className="items-center">
 					<Logo />
-					<Text className="my-[13px] text-2xl font-bold text-[#161719] dark:text-zinc-100">BookWorm</Text>
-					<Text className="text-[28px] font-bold mt-8 text-[#161719] dark:text-zinc-100">Welcome Back!</Text>
-					<Text className="mt-[5px] text-base text-[#91919F] dark:text-zinc-400">Sign in to continue your reading journey</Text>
+					<Text className="my-[13px] text-2xl font-bold" style={{ color: theme.colors.textPrimary }}>
+						BookWorm
+					</Text>
+					<Text className="text-[28px] font-bold mt-8" style={{ color: theme.colors.textPrimary }}>
+						Welcome Back!
+					</Text>
+					<Text className="mt-[5px] text-base" style={{ color: theme.colors.textSecondary }}>
+						Sign in to continue your reading journey
+					</Text>
 				</View>
 
 				<View className="mt-10">
@@ -107,14 +113,24 @@ const Login = () => {
 							<View className="mb-[15px]">
 								<TextInput
 									placeholder="Email address"
-									placeholderTextColor={isDark ? "#8A8F9C" : "#91919F"}
+									placeholderTextColor={theme.colors.textMuted}
 									keyboardType="email-address"
 									autoCapitalize="none"
-									className={`rounded-2xl bg-[#F6F6F6] p-6 text-base text-[#161719] dark:bg-zinc-900 dark:text-zinc-100 ${errors.email ? "border border-red-500" : "focus:border focus:border-violet-600"}`}
+									className="rounded-2xl p-6 text-base"
+									style={{
+										backgroundColor: theme.colors.surfaceMuted,
+										color: theme.colors.textPrimary,
+										borderWidth: 1,
+										borderColor: errors.email ? theme.colors.error : theme.colors.inputBorder,
+									}}
 									value={value}
 									onChangeText={onChange}
 								/>
-								{errors.email && <Text className="mt-1 text-sm text-red-500">{errors.email.message}</Text>}
+								{errors.email && (
+									<Text className="mt-1 text-sm" style={{ color: theme.colors.error }}>
+										{errors.email.message}
+									</Text>
+								)}
 							</View>
 						)}
 					/>
@@ -125,45 +141,70 @@ const Login = () => {
 						render={({ field: { onChange, value } }) => (
 							<View>
 								<View
-									className={`flex-row items-center rounded-2xl bg-[#F6F6F6] ${Platform.OS === "ios" ? "p-6" : "p-3"} dark:bg-zinc-900 ${errors.password ? "border border-red-500" : "focus:border focus:border-violet-600"}`}
+									className={`flex-row items-center rounded-2xl ${Platform.OS === "ios" ? "p-6" : "p-3"}`}
+									style={{
+										backgroundColor: theme.colors.surfaceMuted,
+										borderWidth: 1,
+										borderColor: errors.password ? theme.colors.error : theme.colors.inputBorder,
+									}}
 								>
 									<TextInput
 										placeholder="Password"
-										placeholderTextColor={isDark ? "#8A8F9C" : "#91919F"}
+										placeholderTextColor={theme.colors.textMuted}
 										secureTextEntry={showPassword}
-										className="flex-1 text-base text-[#161719] dark:text-zinc-100"
+										className="flex-1 text-base"
+										style={{ color: theme.colors.textPrimary }}
 										value={value}
 										onChangeText={onChange}
 									/>
-									<Ionicons name={showPassword ? "eye-outline" : "eye-off-outline"} size={20} color={iconColor} onPress={() => setShowPassword(!showPassword)} />
+									<Ionicons name={showPassword ? "eye-outline" : "eye-off-outline"} size={20} color={theme.colors.textSecondary} onPress={() => setShowPassword(!showPassword)} />
 								</View>
-								{errors.password && <Text className="mt-1 text-sm text-red-500">{errors.password.message}</Text>}
+								{errors.password && (
+									<Text className="mt-1 text-sm" style={{ color: theme.colors.error }}>
+										{errors.password.message}
+									</Text>
+								)}
 							</View>
 						)}
 					/>
 
-					<Link href="/(auth)/forgot-password" className="my-4 text-right text-base font-semibold text-violet-500">
+					<Link href="/(auth)/forgot-password" className="my-4 text-right text-base font-semibold" style={{ color: theme.colors.primary }}>
 						Forgot Password?
 					</Link>
 
-					<TouchableOpacity className="mt-[10px] items-center rounded-2xl bg-violet-600 p-4" onPress={handleSubmit(onSubmit)} disabled={isSubmitting || isloggingIn}>
-						{isSubmitting || isloggingIn ? <ActivityIndicator size={20} className="text-white" /> : <Text className="text-lg font-semibold text-white">Login</Text>}
+					<TouchableOpacity className="mt-[10px] items-center rounded-2xl p-4" style={{ backgroundColor: theme.colors.primary }} onPress={handleSubmit(onSubmit)} disabled={isSubmitting || isloggingIn}>
+						{isSubmitting || isloggingIn ? (
+							<ActivityIndicator size={20} color={theme.colors.onPrimary} />
+						) : (
+							<Text className="text-lg font-semibold" style={{ color: theme.colors.onPrimary }}>
+								Login
+							</Text>
+						)}
 					</TouchableOpacity>
 
 					<View className="flex-row items-center gap-4 my-6">
-						<View className="flex-1 h-[1px] bg-gray-300 dark:bg-zinc-700" />
-						<Text className="text-center text-base text-[#6B7280] dark:text-zinc-400">Or continue with</Text>
-						<View className="flex-1 h-[1px] bg-gray-300 dark:bg-zinc-700" />
+						<View className="flex-1 h-[1px]" style={{ backgroundColor: theme.colors.divider }} />
+						<Text className="text-center text-base" style={{ color: theme.colors.textSecondary }}>
+							Or continue with
+						</Text>
+						<View className="flex-1 h-[1px]" style={{ backgroundColor: theme.colors.divider }} />
 					</View>
 
-					<TouchableOpacity onPress={handleGoogleLogIn} className="flex-row items-center justify-center rounded-2xl border border-gray-300 p-4 dark:border-zinc-700 dark:bg-zinc-900" disabled={isSigningIn}>
-						{isSigningIn ? <ActivityIndicator size={20} /> : <Ionicons name="logo-google" size={24} color="red" />}
-						<Text className="ml-[10px] text-base text-[#161719] dark:text-zinc-100">Google</Text>
+					<TouchableOpacity
+						onPress={handleGoogleLogIn}
+						className="flex-row items-center justify-center rounded-2xl p-4"
+						style={{ borderWidth: 1, borderColor: theme.colors.border, backgroundColor: theme.colors.surface }}
+						disabled={isSigningIn}
+					>
+						{isSigningIn ? <ActivityIndicator size={20} color={theme.colors.textSecondary} /> : <Ionicons name="logo-google" size={24} color={theme.colors.googleBrand} />}
+						<Text className="ml-[10px] text-base" style={{ color: theme.colors.textPrimary }}>
+							Google
+						</Text>
 					</TouchableOpacity>
 
-					<Text className="mt-20 text-center text-base text-[#6B7280] dark:text-zinc-400">
+					<Text className="mt-20 text-center text-base" style={{ color: theme.colors.textSecondary }}>
 						Don't have an account?{" "}
-						<Link href="/(auth)/signup-option" className="font-bold text-violet-500">
+						<Link href="/(auth)/signup-option" className="font-bold" style={{ color: theme.colors.primary }}>
 							Sign Up
 						</Link>
 					</Text>

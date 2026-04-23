@@ -1,13 +1,15 @@
 import React, { useMemo, useRef, useState, useEffect } from "react";
-import { KeyboardAvoidingView, Platform, Text, TextInput, TouchableOpacity, View, useColorScheme } from "react-native";
+import { KeyboardAvoidingView, Platform, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Link, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuthStore } from "@/store/useAuthStore";
+import { useAppTheme } from "@/providers/theme";
 
 const OtpVerification = () => {
 	const router = useRouter();
-	const isDark = useColorScheme() === "dark";
+	const theme = useAppTheme();
+	const isDark = theme.mode === "dark";
 	const [code, setCode] = useState<Array<string>>(["", "", "", "", "", ""]);
 	const inputRefs = useRef<Array<TextInput | null>>([]);
 	const { setForgotPasswordToken, setPasswordResetStep } = useAuthStore();
@@ -42,8 +44,8 @@ const OtpVerification = () => {
 	};
 
 	return (
-		<SafeAreaView className="flex-1 bg-white dark:bg-zinc-950 px-6 pt-6">
-			<KeyboardAvoidingView className="flex-1" behavior={Platform.OS === "ios" ? "padding" : undefined}>
+		<SafeAreaView className="flex-1 px-6 pt-6" style={{ backgroundColor: theme.colors.background }}>
+			<KeyboardAvoidingView className="flex-1" behavior={Platform.OS === "ios" ? "padding" : "height"}>
 				<TouchableOpacity
 					onPress={() => {
 						setPasswordResetStep(1);
@@ -51,19 +53,23 @@ const OtpVerification = () => {
 					}}
 					className="mb-10"
 				>
-					<Ionicons name="chevron-back" size={28} color={isDark ? "#F4F5F7" : "#161719"} />
+					<Ionicons name="chevron-back" size={28} color={theme.colors.textPrimary} />
 				</TouchableOpacity>
 
 				<View className="items-center mb-8">
-					<View className="w-32 h-32 bg-violet-100 dark:bg-violet-950 rounded-full justify-center items-center">
-						<View className="w-16 h-16 bg-violet-600 rounded-2xl justify-center items-center shadow-lg">
-							<Ionicons name="mail-open-outline" size={30} color="#FFF" />
+					<View className="w-32 h-32 rounded-full justify-center items-center" style={{ backgroundColor: theme.colors.inputFocusBackground }}>
+						<View className="w-16 h-16 rounded-2xl justify-center items-center shadow-lg" style={{ backgroundColor: theme.colors.primary }}>
+							<Ionicons name="mail-open-outline" size={30} color={theme.colors.onPrimary} />
 						</View>
 					</View>
 				</View>
 
-				<Text className="text-3xl font-bold text-[#161719] dark:text-zinc-100 text-center mb-4">OTP Verification</Text>
-				<Text className="text-[#91919F] dark:text-zinc-400 text-base text-center px-4 mb-8 leading-6">Enter the 6-digit code sent to your email to continue resetting your password.</Text>
+				<Text className="text-3xl font-bold text-center mb-4" style={{ color: theme.colors.textPrimary }}>
+					OTP Verification
+				</Text>
+				<Text className="text-base text-center px-4 mb-8 leading-6" style={{ color: theme.colors.textSecondary }}>
+					Enter the 6-digit code sent to your email to continue resetting your password.
+				</Text>
 
 				<View className="mb-7 flex-row justify-between">
 					{code.map((digit, index) => (
@@ -72,9 +78,14 @@ const OtpVerification = () => {
 							ref={(el) => {
 								inputRefs.current[index] = el;
 							}}
-							className={`h-16 w-14 rounded-2xl border text-center text-xl font-bold focus:border-violet-500 focus:bg-violet-50 dark:focus:bg-violet-950 border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-[#161719] dark:text-zinc-100`}
+							className="h-16 w-14 rounded-2xl border text-center text-xl font-bold"
+							style={{
+								borderColor: theme.colors.inputBorder,
+								backgroundColor: isDark ? theme.colors.surfaceMuted : theme.colors.surface,
+								color: theme.colors.textPrimary,
+							}}
 							keyboardType="number-pad"
-							placeholderTextColor={isDark ? "#8A8F9C" : "#91919F"}
+							placeholderTextColor={theme.colors.textMuted}
 							maxLength={1}
 							value={digit}
 							onChangeText={(value) => handleChangeDigit(value, index)}
@@ -83,20 +94,31 @@ const OtpVerification = () => {
 					))}
 				</View>
 
-				<TouchableOpacity onPress={handleSubmit} className={`p-4 rounded-2xl items-center mb-6 ${isCodeComplete ? "bg-violet-600" : "bg-[#D7D8DE] dark:bg-zinc-700"}`} disabled={!isCodeComplete}>
-					<Text className="text-white text-base font-bold">Verify Code</Text>
+				<TouchableOpacity
+					onPress={handleSubmit}
+					className="p-4 rounded-2xl items-center mb-6"
+					style={{ backgroundColor: isCodeComplete ? theme.colors.primary : theme.colors.buttonDisabled }}
+					disabled={!isCodeComplete}
+				>
+					<Text className="text-base font-bold" style={{ color: theme.colors.onPrimary }}>
+						Verify Code
+					</Text>
 				</TouchableOpacity>
 
 				<View className="items-center mt-2">
-					<Text className="text-base text-[#91919F] dark:text-zinc-400">Did not get the code?</Text>
+					<Text className="text-base" style={{ color: theme.colors.textSecondary }}>
+						Did not get the code?
+					</Text>
 					<TouchableOpacity className="mt-6">
-						<Text className="text-base font-semibold text-violet-500">Resend in 00:30</Text>
+						<Text className="text-base font-semibold" style={{ color: theme.colors.primary }}>
+							Resend in 00:30
+						</Text>
 					</TouchableOpacity>
 				</View>
 
-				<Text className="text-center text-base text-[#91919F] dark:text-zinc-400 mt-8">
+				<Text className="text-center text-base mt-8" style={{ color: theme.colors.textSecondary }}>
 					Wrong email?{" "}
-					<Link href="/(auth)/forgot-password" className="text-violet-500 font-bold">
+					<Link href="/(auth)/forgot-password" className="font-bold" style={{ color: theme.colors.primary }}>
 						Change it
 					</Link>
 				</Text>

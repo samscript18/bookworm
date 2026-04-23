@@ -9,6 +9,7 @@ export const updateFcmToken = async (data: fcmTokenDto) => {
 
 		return response.data;
 	} catch (error) {
+		console.log(error);
 		errorHandler(error as AxiosErrorShape | string);
 		throw error;
 	}

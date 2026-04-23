@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, ScrollView, Image, ActivityIndicator, KeyboardAvoidingView, Platform, useColorScheme } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, ScrollView, Image, ActivityIndicator, KeyboardAvoidingView, Platform, Alert } from "react-native";
 import { Link, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
@@ -13,6 +13,7 @@ import { signup } from "@/lib/services/auth.service";
 import { User } from "@/types/user/user";
 import { toast } from "@/lib/utils/toast";
 import { uploadSingleImage } from "@/lib/services/upload.service";
+import { useAppTheme } from "@/providers/theme";
 
 const TOTAL_STEPS = 6;
 const STEP_FIELDS: Record<number, FieldPath<SignUpType>[]> = {
@@ -28,8 +29,7 @@ const SignUp = () => {
 	const router = useRouter();
 	const { registrationData, setRegistrationData, registrationStep, setRegistrationStep, setAccessToken, setUser, setIsAuthenticated } = useAuthStore();
 	const [showPassword, setShowPassword] = useState<boolean>(false);
-	const isDark = useColorScheme() === "dark";
-	const iconColor = isDark ? "#B8BCC8" : "#91919F";
+	const theme = useAppTheme();
 	const step = registrationStep;
 	const {
 		handleSubmit,
@@ -61,6 +61,13 @@ const SignUp = () => {
 	];
 
 	const pickImage = async () => {
+		const { granted } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+		if (!granted) {
+			Alert.alert("Permission Denied", "Media library permission is needed to upload profile image.");
+			return;
+		}
+
 		let result = await ImagePicker.launchImageLibraryAsync({
 			mediaTypes: ["images"],
 			allowsEditing: true,
@@ -90,12 +97,30 @@ const SignUp = () => {
 		handleSubmit(submit)();
 	};
 
+	const getInputStyle = (hasError?: boolean) => ({
+		backgroundColor: theme.colors.surfaceMuted,
+		color: theme.colors.textPrimary,
+		borderWidth: 1,
+		borderColor: hasError ? theme.colors.error : theme.colors.inputBorder,
+	});
+
+	const getErrorText = (message?: string) => {
+		if (!message) return null;
+		return (
+			<Text className="mt-1 text-sm" style={{ color: theme.colors.error }}>
+				{message}
+			</Text>
+		);
+	};
+
 	const renderStepContent = () => {
 		switch (step) {
 			case 1:
 				return (
 					<View className="mb-8">
-						<Text className="mb-4 text-base font-semibold text-[#161719] dark:text-zinc-100">Email Address</Text>
+						<Text className="mb-4 text-base font-semibold" style={{ color: theme.colors.textPrimary }}>
+							Email Address
+						</Text>
 						<Controller
 							control={control}
 							name="email"
@@ -103,10 +128,11 @@ const SignUp = () => {
 								<View className="mb-[15px]">
 									<TextInput
 										placeholder="Email address"
-										placeholderTextColor={isDark ? "#8A8F9C" : "#91919F"}
+										placeholderTextColor={theme.colors.textMuted}
 										keyboardType="email-address"
 										autoCapitalize="none"
-										className={`rounded-2xl bg-[#F6F6F6] p-6 text-base text-[#161719] dark:bg-zinc-900 dark:text-zinc-100 ${errors.email ? "border border-red-500" : "focus:border focus:border-violet-600"}`}
+										className="rounded-2xl p-6 text-base"
+										style={getInputStyle(!!errors.email)}
 										value={value}
 										onChangeText={(val) => {
 											onChange(val);
@@ -114,7 +140,7 @@ const SignUp = () => {
 											void trigger("email");
 										}}
 									/>
-									{errors.email && <Text className="mt-1 text-sm text-red-500">{errors.email.message}</Text>}
+									{getErrorText(errors.email?.message)}
 								</View>
 							)}
 						/>
@@ -123,20 +149,21 @@ const SignUp = () => {
 			case 2:
 				return (
 					<View className="mb-8">
-						<Text className="mb-3 text-base font-semibold text-[#161719] dark:text-zinc-100">Password</Text>
+						<Text className="mb-3 text-base font-semibold" style={{ color: theme.colors.textPrimary }}>
+							Password
+						</Text>
 						<Controller
 							control={control}
 							name="password"
 							render={({ field: { onChange, value } }) => (
 								<View>
-									<View
-										className={`flex-row items-center rounded-2xl bg-[#F6F6F6] ${Platform.OS === "ios" ? "p-6" : "p-3"} dark:bg-zinc-900 ${errors.password ? "border border-red-500" : "focus:border focus:border-violet-600"}`}
-									>
+									<View className={`flex-row items-center rounded-2xl ${Platform.OS === "ios" ? "p-6" : "p-3"}`} style={getInputStyle(!!errors.password)}>
 										<TextInput
 											placeholder="Password"
-											placeholderTextColor={isDark ? "#8A8F9C" : "#91919F"}
+											placeholderTextColor={theme.colors.textMuted}
 											secureTextEntry={!showPassword}
-											className="flex-1 text-base text-[#161719] dark:text-zinc-100"
+											className="flex-1 text-base"
+											style={{ color: theme.colors.textPrimary }}
 											value={value}
 											onChangeText={(val) => {
 												onChange(val);
@@ -144,19 +171,26 @@ const SignUp = () => {
 												void trigger("password");
 											}}
 										/>
-										<Ionicons name={showPassword ? "eye-outline" : "eye-off-outline"} size={20} color={iconColor} onPress={() => setShowPassword(!showPassword)} />
+										<Ionicons
+											name={showPassword ? "eye-outline" : "eye-off-outline"}
+											size={20}
+											color={theme.colors.textSecondary}
+											onPress={() => setShowPassword(!showPassword)}
+										/>
 									</View>
-									{errors.password && <Text className="mt-1 text-sm text-red-500">{errors.password.message}</Text>}
-									<View className="mt-6 rounded-2xl bg-violet-100 p-4 gap-3 dark:bg-zinc-900">
-										<Text className="mb-3 text-sm font-medium text-[#161719] dark:text-zinc-100">Password must contain:</Text>
+									{getErrorText(errors.password?.message)}
+									<View className="mt-6 rounded-2xl p-4 gap-3" style={{ backgroundColor: theme.colors.accentSurface }}>
+										<Text className="mb-3 text-sm font-medium" style={{ color: theme.colors.textPrimary }}>
+											Password must contain:
+										</Text>
 										{passwordRequirements.map((item) => (
 											<View key={item.label} className="mb-3 flex-row items-center last:mb-0">
 												<Ionicons
 													name={item.met ? "checkmark-circle" : "ellipse-outline"}
 													size={20}
-													color={item.met ? "#7C3AED" : isDark ? "#52525B" : "#C4C7D2"}
+													color={item.met ? theme.colors.primary : theme.colors.textMuted}
 												/>
-												<Text className={`ml-3 text-sm ${item.met ? "text-[#161719] dark:text-white" : "text-[#91919F] dark:text-white"}`}>
+												<Text className="ml-3 text-sm" style={{ color: item.met ? theme.colors.textPrimary : theme.colors.textSecondary }}>
 													{item.label}
 												</Text>
 											</View>
@@ -170,7 +204,9 @@ const SignUp = () => {
 			case 3:
 				return (
 					<View className="mb-8">
-						<Text className="mb-3 text-base font-semibold text-[#161719] dark:text-zinc-100">Name</Text>
+						<Text className="mb-3 text-base font-semibold" style={{ color: theme.colors.textPrimary }}>
+							Name
+						</Text>
 						<View className="flex-row justify-between">
 							<Controller
 								control={control}
@@ -179,16 +215,17 @@ const SignUp = () => {
 									<View className="mr-2 flex-1">
 										<TextInput
 											placeholder="First Name"
-											placeholderTextColor={isDark ? "#8A8F9C" : "#91919F"}
+											placeholderTextColor={theme.colors.textMuted}
 											value={value}
-											className={`rounded-2xl bg-[#F6F6F6] p-6 text-base text-[#161719] dark:bg-zinc-900 dark:text-zinc-100 ${errors.firstName ? "border border-red-500" : "focus:border focus:border-violet-600"}`}
+											className="rounded-2xl p-6 text-base"
+											style={getInputStyle(!!errors.firstName)}
 											onChangeText={(val) => {
 												onChange(val);
 												setRegistrationData({ firstName: val });
 												void trigger("firstName");
 											}}
 										/>
-										{errors.firstName && <Text className="mt-1 text-sm text-red-500">{errors.firstName.message}</Text>}
+										{getErrorText(errors.firstName?.message)}
 									</View>
 								)}
 							/>
@@ -199,16 +236,17 @@ const SignUp = () => {
 									<View className="ml-2 flex-1">
 										<TextInput
 											placeholder="Last Name"
-											placeholderTextColor={isDark ? "#8A8F9C" : "#91919F"}
+											placeholderTextColor={theme.colors.textMuted}
 											value={value}
-											className={`rounded-2xl bg-[#F6F6F6] p-6 text-base text-[#161719] dark:bg-zinc-900 dark:text-zinc-100 ${errors.lastName ? "border border-red-500" : "focus:border focus:border-violet-600"}`}
+											className="rounded-2xl p-6 text-base"
+											style={getInputStyle(!!errors.lastName)}
 											onChangeText={(val) => {
 												onChange(val);
 												setRegistrationData({ lastName: val });
 												void trigger("lastName");
 											}}
 										/>
-										{errors.lastName && <Text className="mt-1 text-sm text-red-500">{errors.lastName.message}</Text>}
+										{getErrorText(errors.lastName?.message)}
 									</View>
 								)}
 							/>
@@ -218,7 +256,9 @@ const SignUp = () => {
 			case 4:
 				return (
 					<View className="mb-8">
-						<Text className="mb-3 text-base font-semibold text-[#161719] dark:text-zinc-100">Username</Text>
+						<Text className="mb-3 text-base font-semibold" style={{ color: theme.colors.textPrimary }}>
+							Username
+						</Text>
 						<Controller
 							control={control}
 							name="userName"
@@ -226,17 +266,18 @@ const SignUp = () => {
 								<View>
 									<TextInput
 										placeholder="Username"
-										placeholderTextColor={isDark ? "#8A8F9C" : "#91919F"}
+										placeholderTextColor={theme.colors.textMuted}
 										autoCapitalize="none"
 										value={value}
-										className={`w-full rounded-2xl bg-[#F6F6F6] p-6 text-base text-[#161719] dark:bg-zinc-900 dark:text-zinc-100 ${errors.userName ? "border border-red-500" : "focus:border focus:border-violet-600"}`}
+										className="w-full rounded-2xl p-6 text-base"
+										style={getInputStyle(!!errors.userName)}
 										onChangeText={(val) => {
 											onChange(val);
 											setRegistrationData({ userName: val });
 											void trigger("userName");
 										}}
 									/>
-									{errors.userName && <Text className="mt-1 text-sm text-red-500">{errors.userName.message}</Text>}
+									{getErrorText(errors.userName?.message)}
 								</View>
 							)}
 						/>
@@ -245,7 +286,9 @@ const SignUp = () => {
 			case 5:
 				return (
 					<View className="mb-8">
-						<Text className="mb-3 text-base font-semibold text-[#161719] dark:text-zinc-100">Bio</Text>
+						<Text className="mb-3 text-base font-semibold" style={{ color: theme.colors.textPrimary }}>
+							Bio
+						</Text>
 						<Controller
 							control={control}
 							name="bio"
@@ -253,18 +296,19 @@ const SignUp = () => {
 								<View>
 									<TextInput
 										placeholder="Tell us about yourself"
-										placeholderTextColor={isDark ? "#8A8F9C" : "#91919F"}
+										placeholderTextColor={theme.colors.textMuted}
 										multiline
 										textAlignVertical="top"
 										value={value || ""}
-										className={`min-h-[120px] w-full rounded-2xl bg-[#F6F6F6] p-6 text-base text-[#161719] dark:bg-zinc-900 dark:text-zinc-100 ${errors.bio ? "border border-red-500" : "focus:border focus:border-violet-600"}`}
+										className="min-h-[120px] w-full rounded-2xl p-6 text-base"
+										style={getInputStyle(!!errors.bio)}
 										onChangeText={(val) => {
 											onChange(val);
 											setRegistrationData({ bio: val });
 											void trigger("bio");
 										}}
 									/>
-									{errors.bio && <Text className="mt-1 text-sm text-red-500">{errors.bio.message}</Text>}
+									{getErrorText(errors.bio?.message)}
 								</View>
 							)}
 						/>
@@ -273,22 +317,31 @@ const SignUp = () => {
 			case 6:
 				return (
 					<View className="mb-8 items-center">
-						<Text className="mb-3 self-start text-base font-semibold text-[#161719] dark:text-zinc-100">Profile Image</Text>
+						<Text className="mb-3 self-start text-base font-semibold" style={{ color: theme.colors.textPrimary }}>
+							Profile Image
+						</Text>
 						<Controller
 							control={control}
 							name="profileImage"
 							render={({ field: { value } }) => (
 								<TouchableOpacity
 									onPress={pickImage}
-									className="h-64 w-64 items-center justify-center overflow-hidden rounded-full border-2 border-dashed border-violet-500 bg-[#F6F6F6] dark:bg-zinc-900"
+									className="h-64 w-64 items-center justify-center overflow-hidden rounded-full border-2 border-dashed"
+									style={{ borderColor: theme.colors.primary, backgroundColor: theme.colors.surfaceMuted }}
 								>
-									{value ? <Image source={{ uri: value.uri }} className="h-full w-full" /> : <Ionicons name="camera" size={32} color={isDark ? "#9B6BFF" : "#7F3DFF"} />}
+									{value ? <Image source={{ uri: value.uri }} className="h-full w-full" /> : <Ionicons name="camera" size={32} color={theme.colors.primary} />}
 								</TouchableOpacity>
 							)}
 						/>
-						{errors.profileImage && <Text className="mt-1 self-start text-sm text-red-500">{errors.profileImage.message as String}</Text>}
+						{errors.profileImage && (
+							<Text className="mt-1 self-start text-sm" style={{ color: theme.colors.error }}>
+								{errors.profileImage.message as string}
+							</Text>
+						)}
 						<TouchableOpacity onPress={pickImage} className="mt-2">
-							<Text className="font-semibold text-base text-violet-500">Upload Photo</Text>
+							<Text className="font-semibold text-base" style={{ color: theme.colors.primary }}>
+								Upload Photo
+							</Text>
 						</TouchableOpacity>
 					</View>
 				);
@@ -335,7 +388,7 @@ const SignUp = () => {
 					name: data.profileImage.uri.split("/").pop() || "image.jpg",
 				} as any);
 
-				const imageData = await uploadSingleImage(formData);
+				const imageData = await _uploadingImage(formData);
 				url = imageData.url;
 			}
 
@@ -344,22 +397,26 @@ const SignUp = () => {
 			await _signingUp(payload);
 
 			toast.success("Signup successful");
-			router.push("/(dashboard)/home");
+			router.push("/(tabs)/home");
 		} catch (error) {
 			console.error("Failed to sign up", error);
 		}
 	};
 
 	return (
-		<ScrollView className="flex-1 bg-white dark:bg-zinc-950 px-5 pt-12 pb-10" showsVerticalScrollIndicator={false}>
-			<KeyboardAvoidingView className="flex-1" behavior={Platform.OS === "ios" ? "padding" : undefined}>
+		<ScrollView className="flex-1 px-5 pt-12 pb-10" style={{ backgroundColor: theme.colors.background }} showsVerticalScrollIndicator={false}>
+			<KeyboardAvoidingView className="flex-1" behavior={Platform.OS === "ios" ? "padding" : "height"}>
 				<TouchableOpacity onPress={() => router.back()} className="my-6">
-					<Ionicons name="chevron-back" size={28} color={isDark ? "#F4F5F7" : "#161719"} />
+					<Ionicons name="chevron-back" size={28} color={theme.colors.textPrimary} />
 				</TouchableOpacity>
 
-				<Text className="text-3xl font-bold text-[#161719] dark:text-zinc-100 mb-2">Create Account</Text>
-				<Text className="text-[#91919F] dark:text-zinc-400 mb-8 text-base">Join the reading community today</Text>
-				<Text className="mb-6 font-semibold text-violet-500 text-base">
+				<Text className="text-3xl font-bold mb-2" style={{ color: theme.colors.textPrimary }}>
+					Create Account
+				</Text>
+				<Text className="mb-8 text-base" style={{ color: theme.colors.textSecondary }}>
+					Join the reading community today
+				</Text>
+				<Text className="mb-6 font-semibold text-base" style={{ color: theme.colors.primary }}>
 					Step {step} of {TOTAL_STEPS}
 				</Text>
 
@@ -369,23 +426,32 @@ const SignUp = () => {
 					<TouchableOpacity
 						onPress={() => setRegistrationStep(Math.max(1, step - 1))}
 						disabled={step === 1}
-						className={`w-[48%] items-center rounded-2xl p-4 ${step === 1 ? "bg-[#EEE] dark:bg-zinc-800" : "border border-violet-500 bg-white dark:bg-zinc-900"}`}
+						className="w-[48%] items-center rounded-2xl p-4"
+						style={{
+							backgroundColor: step === 1 ? theme.colors.buttonDisabled : theme.colors.surface,
+							borderWidth: step === 1 ? 0 : 1,
+							borderColor: step === 1 ? "transparent" : theme.colors.primary,
+						}}
 					>
-						<Text className={`text-base font-semibold ${step === 1 ? "text-[#91919F] dark:text-zinc-500" : "text-violet-500"}`}>Previous</Text>
+						<Text className="text-base font-semibold" style={{ color: step === 1 ? theme.colors.textSecondary : theme.colors.primary }}>
+							Previous
+						</Text>
 					</TouchableOpacity>
 
-					<TouchableOpacity className="w-[48%] items-center rounded-2xl bg-violet-600 p-4" onPress={handleNext} disabled={isSubmitting || isSigningUp || isUploadingImage}>
+					<TouchableOpacity className="w-[48%] items-center rounded-2xl p-4" style={{ backgroundColor: theme.colors.primary }} onPress={handleNext} disabled={isSubmitting || isSigningUp || isUploadingImage}>
 						{isSubmitting || isSigningUp || isUploadingImage ? (
-							<ActivityIndicator size={20} className="text-white" />
+							<ActivityIndicator size={20} color={theme.colors.onPrimary} />
 						) : (
-							<Text className="text-base font-semibold text-white">{step === TOTAL_STEPS ? "Sign Up" : "Next"}</Text>
+							<Text className="text-base font-semibold" style={{ color: theme.colors.onPrimary }}>
+								{step === TOTAL_STEPS ? "Sign Up" : "Next"}
+							</Text>
 						)}
 					</TouchableOpacity>
 				</View>
 
-				<Text className="my-12 text-base text-center text-[#91919F] dark:text-zinc-400">
+				<Text className="my-12 text-base text-center" style={{ color: theme.colors.textSecondary }}>
 					Already have an account?{" "}
-					<Link href="/(auth)/login" className="font-bold text-violet-500">
+					<Link href="/(auth)/login" className="font-bold" style={{ color: theme.colors.primary }}>
 						Login
 					</Link>
 				</Text>
