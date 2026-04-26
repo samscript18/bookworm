@@ -1,16 +1,20 @@
-import { ForgotPasswordDto, GoogleAuthDto, LoginDto, ResetPasswordDto, SignUpDto } from "@/types/auth/auth.dto";
+import { ForgotPasswordDto, GoogleAuthDto, LoginDto, LogoutDto, ResetPasswordDto, SignUpDto } from "@/types/auth/auth.dto";
 import { AxiosErrorShape, errorHandler } from "../config/axios-error";
 import { publicApi } from "../config/axios-instance";
 import { ApiResponse } from "@/types/api";
 import { User } from "@/types/user/user";
 import { signInWithGoogle } from "../config/google";
+import { GoogleSignin } from "@react-native-google-signin/google-signin";
+import { removeFcmToken } from "./user.service";
 
 export const login = async (data: LoginDto) => {
 	try {
 		const response = await publicApi.post<ApiResponse<{ user: User; token: string }>>("/auth/login", data);
+		console.log("Login response:", response.data);
 
 		return response.data.data;
 	} catch (error) {
+		console.log("Login error:", error);
 		errorHandler(error as AxiosErrorShape | string);
 		throw error;
 	}
@@ -58,6 +62,13 @@ export const googleAuth = async () => {
 	}
 };
 
-//logout function is handled in the auth store, but if you want to do additional cleanup related to Google Sign-In, you can add it here. For example, you might want to sign out from Google when the user logs out of your app.
-// await GoogleSignin.signOut();
-// await removeFcmToken(token);
+export const logout = async (data: LogoutDto) => {
+	try {
+		await removeFcmToken({ fcmToken: data.token, platform: data.platform });
+		await GoogleSignin.signOut();
+		return true;
+	} catch (error) {
+		errorHandler(error as AxiosErrorShape | string);
+		throw error;
+	}
+};

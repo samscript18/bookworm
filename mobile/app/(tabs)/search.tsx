@@ -4,13 +4,13 @@ import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Link } from "expo-router";
 import { CATEGORIES, GENRES, TRENDING_BOOKS } from "@/data/data";
-import { useAppTheme } from "@/providers/theme";
+import { useThemeStore } from "@/store/useThemeStore";
 
 const Search = () => {
-	const theme = useAppTheme();
-	const isDark = theme.mode === "dark";
+	const { theme, isDark } = useThemeStore();
+
 	return (
-		<SafeAreaView className="flex-1" style={{ backgroundColor: isDark ? "#0E0F13" : "#F7F7FA" }} edges={["top"]}>
+		<SafeAreaView className="flex-1" style={{ backgroundColor: theme.colors.background }} edges={["top"]}>
 			<ScrollView showsVerticalScrollIndicator={false}>
 				<View className="px-4 pt-6 pb-8 rounded-b-[30px]" style={{ backgroundColor: theme.colors.primary }}>
 					<Text className="text-3xl font-bold text-white mb-4">Explore</Text>

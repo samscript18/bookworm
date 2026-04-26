@@ -3,14 +3,13 @@ import { View, Text, TextInput, TouchableOpacity, Image, ScrollView, KeyboardAvo
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useAppTheme } from "@/providers/theme";
+import { useThemeStore } from "@/store/useThemeStore";
 
 type ReviewTag = "Emotional" | "Inspiring" | "Thriller" | "Page-turner" | "Thought-provoking";
 
 export default function WriteReview() {
 	const router = useRouter();
-	const theme = useAppTheme();
-	const isDark = theme.mode === "dark";
+	const { theme, isDark } = useThemeStore();
 	const params = useLocalSearchParams<{
 		bookId?: string;
 		bookTitle?: string;
@@ -18,8 +17,8 @@ export default function WriteReview() {
 		cover?: string;
 	}>();
 
-	const [rating, setRating] = useState(4);
-	const [reviewText, setReviewText] = useState("");
+	const [rating, setRating] = useState<number>(4);
+	const [reviewText, setReviewText] = useState<string>("");
 	const [tags, setTags] = useState<ReviewTag[]>(["Emotional", "Inspiring"]);
 
 	const suggestions: ReviewTag[] = ["Thriller", "Page-turner", "Thought-provoking"];
@@ -43,10 +42,10 @@ export default function WriteReview() {
 					<View className="w-10" />
 				</View>
 
-				<ScrollView className="flex-1 px-5 pt-6" showsVerticalScrollIndicator={false}>
+				<ScrollView className="flex-1 px-4 pt-6" showsVerticalScrollIndicator={false}>
 					<View className="flex-row items-center mb-8">
 						<Image source={{ uri: cover }} className="w-12 h-16 rounded-md mr-3 bg-gray-200" />
-						<View className="flex-1">
+						<View className="flex-1 gap-y-2">
 							<Text className="font-bold text-lg" style={{ color: theme.colors.textPrimary }} numberOfLines={1}>
 								{bookTitle}
 							</Text>
@@ -74,7 +73,7 @@ export default function WriteReview() {
 						<Text className="text-base font-semibold mb-3" style={{ color: theme.colors.textPrimary }}>
 							Your Thoughts
 						</Text>
-						<View className="rounded-2xl p-4 h-48" style={{ borderWidth: 1, borderColor: theme.colors.primary, backgroundColor: isDark ? "#141821" : "#FFFFFF" }}>
+						<View className="rounded-2xl p-4 h-96" style={{ borderWidth: 1, borderColor: theme.colors.primary, backgroundColor: isDark ? "#141821" : "#FFFFFF" }}>
 							<TextInput
 								className="flex-1 text-base leading-6"
 								style={{ color: theme.colors.textPrimary }}
@@ -143,7 +142,7 @@ export default function WriteReview() {
 					</View>
 				</ScrollView>
 
-				<View className="p-5" style={{ borderTopWidth: 1, borderTopColor: isDark ? "#20232D" : "#F3F4F6", backgroundColor: isDark ? "#0E0F13" : "#FFFFFF" }}>
+				<View className="px-5 py-8" style={{ borderTopWidth: 1, borderTopColor: isDark ? "#20232D" : "#F3F4F6", backgroundColor: isDark ? "#0E0F13" : "#FFFFFF" }}>
 					<TouchableOpacity className="py-4 rounded-2xl items-center" style={{ backgroundColor: theme.colors.primary }}>
 						<Text className="text-white text-lg font-bold">Submit Review</Text>
 					</TouchableOpacity>

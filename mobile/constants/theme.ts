@@ -26,7 +26,7 @@ export type AppTheme = {
 export const lightTheme: AppTheme = {
 	mode: "light",
 	colors: {
-		background: "#FFFFFF",
+		background: "#F7F7FA",
 		surface: "#FFFFFF",
 		surfaceMuted: "#F6F6F6",
 		accentSurface: "#F5F3FF",
@@ -40,7 +40,7 @@ export const lightTheme: AppTheme = {
 		inputFocusBackground: "#F5F3FF",
 		buttonDisabled: "#D7D8DE",
 		error: "#EF4444",
-		divider: "#D1D5DB",
+		divider: "#F3F4F6",
 		googleBrand: "#EA4335",
 		dot: "#EEEEEE",
 	},
@@ -63,7 +63,7 @@ export const darkTheme: AppTheme = {
 		inputFocusBackground: "#2B1E4B",
 		buttonDisabled: "#3F4452",
 		error: "#F87171",
-		divider: "#3A3F4C",
+		divider: "#FEE2E2",
 		googleBrand: "#EA4335",
 		dot: "#2A2D38",
 	},

@@ -13,12 +13,13 @@ import { googleAuth, login } from "@/lib/services/auth.service";
 import { toast } from "@/lib/utils/toast";
 import { useAuthStore } from "@/store/useAuthStore";
 import { User } from "@/types/user/user";
-import { useAppTheme } from "@/providers/theme";
+import { useThemeStore } from "@/store/useThemeStore";
 
 const Login = () => {
 	const router = useRouter();
 	const [showPassword, setShowPassword] = useState<boolean>(true);
-	const theme = useAppTheme();
+	const [isFocused, setIsFocused] = useState<{ email: boolean; password: boolean }>({ email: false, password: false });
+	const { theme } = useThemeStore();
 
 	const {
 		handleSubmit,
@@ -116,15 +117,17 @@ const Login = () => {
 									placeholderTextColor={theme.colors.textMuted}
 									keyboardType="email-address"
 									autoCapitalize="none"
-									className="rounded-2xl p-6 text-base"
+									className={`rounded-2xl p-6 text-base`}
 									style={{
 										backgroundColor: theme.colors.surfaceMuted,
 										color: theme.colors.textPrimary,
 										borderWidth: 1,
-										borderColor: errors.email ? theme.colors.error : theme.colors.inputBorder,
+										borderColor: errors.email ? theme.colors.error : isFocused.email ? theme.colors.primary : theme.colors.inputBorder,
 									}}
 									value={value}
 									onChangeText={onChange}
+									onFocus={() => setIsFocused({ ...isFocused, email: true })}
+									onBlur={() => setIsFocused({ ...isFocused, email: false })}
 								/>
 								{errors.email && (
 									<Text className="mt-1 text-sm" style={{ color: theme.colors.error }}>
@@ -145,7 +148,7 @@ const Login = () => {
 									style={{
 										backgroundColor: theme.colors.surfaceMuted,
 										borderWidth: 1,
-										borderColor: errors.password ? theme.colors.error : theme.colors.inputBorder,
+										borderColor: errors.password ? theme.colors.error : isFocused.password ? theme.colors.primary : theme.colors.inputBorder,
 									}}
 								>
 									<TextInput
@@ -156,6 +159,8 @@ const Login = () => {
 										style={{ color: theme.colors.textPrimary }}
 										value={value}
 										onChangeText={onChange}
+										onFocus={() => setIsFocused({ ...isFocused, password: true })}
+										onBlur={() => setIsFocused({ ...isFocused, password: false })}
 									/>
 									<Ionicons name={showPassword ? "eye-outline" : "eye-off-outline"} size={20} color={theme.colors.textSecondary} onPress={() => setShowPassword(!showPassword)} />
 								</View>
@@ -168,9 +173,11 @@ const Login = () => {
 						)}
 					/>
 
-					<Link href="/(auth)/forgot-password" className="my-4 text-right text-base font-semibold" style={{ color: theme.colors.primary }}>
-						Forgot Password?
-					</Link>
+					<View className="flex-row justify-end items-end">
+						<Text onPress={() => router.push("/(auth)/forgot-password")} className="my-4 text-base font-semibold" style={{ color: theme.colors.primary }}>
+							Forgot Password?
+						</Text>
+					</View>
 
 					<TouchableOpacity className="mt-[10px] items-center rounded-2xl p-4" style={{ backgroundColor: theme.colors.primary }} onPress={handleSubmit(onSubmit)} disabled={isSubmitting || isloggingIn}>
 						{isSubmitting || isloggingIn ? (

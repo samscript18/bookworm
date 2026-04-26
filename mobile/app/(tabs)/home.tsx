@@ -1,30 +1,44 @@
 import React from "react";
-import { View, Text, ScrollView, TextInput, Image, TouchableOpacity, useColorScheme } from "react-native";
+import { View, Text, ScrollView, TextInput, Image, TouchableOpacity, Platform } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Link } from "expo-router";
+import { Link, useRouter } from "expo-router";
 import { StarRow } from "@/components/ui/star-row";
 import { FEED_POSTS, TRENDING_BOOKS } from "@/data/data";
-import { useAppTheme } from "@/providers/theme";
+import { useThemeStore } from "@/store/useThemeStore";
 
 const HomeFeed = () => {
-	const theme = useAppTheme();
-	const isDark = theme.mode === "dark";
+	const { theme } = useThemeStore();
+	const router = useRouter();
 
 	return (
-		<SafeAreaView className="flex-1" style={{ backgroundColor: isDark ? "#0E0F13" : "#FFFFFF" }} edges={["top"]}>
+		<SafeAreaView className="flex-1" style={{ backgroundColor: theme.colors.background }} edges={["top"]}>
 			<ScrollView showsVerticalScrollIndicator={false} className="flex-1">
 				<View className="flex-row justify-between items-center px-4 pt-2 mb-4">
 					<Text className="text-2xl font-bold" style={{ color: theme.colors.primary }}>
 						BookWorm
 					</Text>
-					<Image source={{ uri: "https://res.cloudinary.com/dynopc0cn/image/upload/v1775118766/default-image_cucpzx.avif" }} className="w-12 h-12 rounded-full" />
+					<View className="flex-row justify-center items-center gap-x-8">
+						<TouchableOpacity onPress={() => router.push("/notifications")}>
+							<Ionicons name="notifications-outline" size={28} color={theme.colors.textSecondary} />
+						</TouchableOpacity>
+						<TouchableOpacity onPress={() => router.push("/(tabs)/profile")}>
+							<Image source={{ uri: "https://res.cloudinary.com/dynopc0cn/image/upload/v1775118766/default-image_cucpzx.avif" }} className="w-12 h-12 rounded-full" />
+						</TouchableOpacity>
+					</View>
 				</View>
 
 				<View className="px-4 mb-6">
-					<View className="flex-row items-center p-3 rounded-2xl" style={{ backgroundColor: isDark ? "#141821" : "#F6F6F6" }}>
+					<View className="flex-row items-center p-3 rounded-2xl" style={{ backgroundColor: theme.colors.surfaceMuted }}>
 						<Ionicons name="search" size={20} color={theme.colors.textSecondary} className="mr-2" />
-						<TextInput placeholder="Search books, authors, reviews..." placeholderTextColor={theme.colors.textSecondary} className="flex-1" style={{ color: theme.colors.textPrimary }} />
+						<TextInput
+							placeholder="Search books, authors, reviews..."
+							placeholderTextColor={theme.colors.textSecondary}
+							className="flex-1"
+							style={{
+								color: theme.colors.textPrimary,
+							}}
+						/>
 					</View>
 				</View>
 
@@ -32,11 +46,11 @@ const HomeFeed = () => {
 					<Text className="text-lg font-semibold px-4 mb-4" style={{ color: theme.colors.textPrimary }}>
 						Trending Now
 					</Text>
-					<ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerClassName="pl-4 gap-2">
+					<ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerClassName="pl-4 gap-3">
 						{TRENDING_BOOKS.map((book) => (
 							<Link href={`/book/${book.id}`} key={book.id} asChild>
 								<TouchableOpacity className="w-[118px]">
-									<Image source={{ uri: book.image }} className="w-[118px] h-[180px] rounded-lg mb-2 bg-gray-200" />
+									<Image source={{ uri: book.image }} className="w-[118px] h-[180px] rounded-lg mb-2" style={{ backgroundColor: theme.colors.surfaceMuted }} />
 									<Text className="text-[13px]" style={{ color: theme.colors.textPrimary }} numberOfLines={2}>
 										{book.title}
 									</Text>
@@ -49,7 +63,7 @@ const HomeFeed = () => {
 
 				<View className="px-4 mt-4">
 					{FEED_POSTS.map((post) => (
-						<View key={post.id} className="mb-8 pb-6" style={{ borderBottomWidth: 1, borderBottomColor: isDark ? "#242937" : "#E5E7EB" }}>
+						<View key={post.id} className="mb-8 pb-6" style={{ borderBottomWidth: 1, borderBottomColor: theme.colors.surfaceMuted }}>
 							<View className="flex-row items-center justify-between mb-3">
 								<View className="flex-row items-center">
 									<Image source={{ uri: post.avatar }} className="w-12 h-12 rounded-full mr-3" />
@@ -67,7 +81,7 @@ const HomeFeed = () => {
 
 							<Link href={`/book/${post.id}`} asChild>
 								<TouchableOpacity className="flex-row my-4">
-									<Image source={{ uri: post.cover }} className="w-[90px] h-[120px] rounded-md mr-3 bg-gray-200" />
+									<Image source={{ uri: post.cover }} className="w-[90px] h-[120px] rounded-md mr-3" style={{ backgroundColor: theme.colors.surfaceMuted }} />
 									<View className="flex-1 justify-start gap-y-2">
 										<Text className="font-semibold text-base" style={{ color: theme.colors.textPrimary }}>
 											{post.bookTitle}

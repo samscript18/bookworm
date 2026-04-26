@@ -13,7 +13,7 @@ import { signup } from "@/lib/services/auth.service";
 import { User } from "@/types/user/user";
 import { toast } from "@/lib/utils/toast";
 import { uploadSingleImage } from "@/lib/services/upload.service";
-import { useAppTheme } from "@/providers/theme";
+import { useThemeStore } from "@/store/useThemeStore";
 
 const TOTAL_STEPS = 6;
 const STEP_FIELDS: Record<number, FieldPath<SignUpType>[]> = {
@@ -29,7 +29,8 @@ const SignUp = () => {
 	const router = useRouter();
 	const { registrationData, setRegistrationData, registrationStep, setRegistrationStep, setAccessToken, setUser, setIsAuthenticated } = useAuthStore();
 	const [showPassword, setShowPassword] = useState<boolean>(false);
-	const theme = useAppTheme();
+	const [isFocused, setIsFocused] = useState<{ [key: string]: boolean }>({});
+	const { theme } = useThemeStore();
 	const step = registrationStep;
 	const {
 		handleSubmit,
@@ -101,7 +102,7 @@ const SignUp = () => {
 		backgroundColor: theme.colors.surfaceMuted,
 		color: theme.colors.textPrimary,
 		borderWidth: 1,
-		borderColor: hasError ? theme.colors.error : theme.colors.inputBorder,
+		borderColor: hasError ? theme.colors.error : isFocused[STEP_FIELDS[step][0]] ? theme.colors.primary : theme.colors.inputBorder,
 	});
 
 	const getErrorText = (message?: string) => {
@@ -139,6 +140,8 @@ const SignUp = () => {
 											setRegistrationData({ email: val });
 											void trigger("email");
 										}}
+										onFocus={() => setIsFocused({ ...isFocused, email: true })}
+										onBlur={() => setIsFocused({ ...isFocused, email: false })}
 									/>
 									{getErrorText(errors.email?.message)}
 								</View>

@@ -84,7 +84,8 @@ export const updateFcmToken = asyncHandler(async (req: Request, res: Response) =
 		throw new UnprocessableEntity("Validation error", ErrorCode.UNPROCESSABLE_ENTITY, parsed.error);
 	}
 
-	await UserService.addFcmToken(userId, parsed.data.fcmToken);
+	await UserService.addFcmToken(userId, { fcmToken: parsed.data.fcmToken, platform: parsed.data.platform });
+
 	res.status(200).json({ success: true, message: "Device token registered" });
 });
 
@@ -96,6 +97,8 @@ export const removeFcmToken = asyncHandler(async (req: Request, res: Response) =
 	if (!parsed.success) {
 		throw new UnprocessableEntity("Validation error", ErrorCode.UNPROCESSABLE_ENTITY, parsed.error);
 	}
-	await UserService.removeFcmToken(userId, parsed.data.fcmToken);
+
+	await UserService.removeFcmToken(userId, { fcmToken: parsed.data.fcmToken, platform: parsed.data.platform });
+
 	res.status(200).json({ success: true });
 });

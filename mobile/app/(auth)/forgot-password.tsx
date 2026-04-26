@@ -10,12 +10,13 @@ import { forgotPasswordSchema } from "@/schemas/auth.schema";
 import { useMutation } from "@tanstack/react-query";
 import { requestForgotPasswordToken } from "@/lib/services/auth.service";
 import { useAuthStore } from "@/store/useAuthStore";
-import { useAppTheme } from "@/providers/theme";
+import { useThemeStore } from "@/store/useThemeStore";
 
 const ForgotPassword = () => {
 	const router = useRouter();
-	const theme = useAppTheme();
+	const { theme } = useThemeStore();
 	const { setPasswordResetStep } = useAuthStore();
+	const [isFocused, setIsFocused] = React.useState<{ email: boolean }>({ email: false });
 
 	useEffect(() => {
 		setPasswordResetStep(1);
@@ -79,7 +80,7 @@ const ForgotPassword = () => {
 								style={{
 									backgroundColor: theme.colors.surfaceMuted,
 									borderWidth: 1,
-									borderColor: errors.email ? theme.colors.error : theme.colors.inputBorder,
+									borderColor: errors.email ? theme.colors.error : isFocused.email ? theme.colors.primary : theme.colors.inputBorder,
 								}}
 							>
 								<Ionicons name="mail-outline" size={20} color={theme.colors.textSecondary} className="mr-3" />
@@ -92,6 +93,8 @@ const ForgotPassword = () => {
 									style={{ color: theme.colors.textPrimary }}
 									value={value}
 									onChangeText={onChange}
+									onFocus={() => setIsFocused({ ...isFocused, email: true })}
+									onBlur={() => setIsFocused({ ...isFocused, email: false })}
 								/>
 							</View>
 							{errors.email && (

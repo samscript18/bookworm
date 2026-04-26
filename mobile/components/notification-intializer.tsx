@@ -4,6 +4,7 @@ import { requestNotificationPermission, setupNotificationListeners } from "@/lib
 import { updateFcmToken } from "@/lib/services/user.service";
 import { syncFcmToken } from "@/lib/utils/syncFromToken";
 import { useAuthStore } from "@/store/useAuthStore";
+import { Platform } from "react-native";
 
 const NotificationInitializer = () => {
 	const { isAuthenticated } = useAuthStore();
@@ -14,14 +15,17 @@ const NotificationInitializer = () => {
 	});
 
 	useEffect(() => {
-    if (!isAuthenticated) return;
+		if (!isAuthenticated) return;
+
+		const platform = Platform.OS === "ios" ? "ios" : "android";
+		if (!platform) return;
 
 		const initNotifications = async () => {
 			try {
 				const token = await requestNotificationPermission();
 
 				if (token) {
-					syncFcmToken(token, updateToken);
+					await syncFcmToken(token, platform, updateToken);
 				}
 			} catch (error) {
 				console.error("Notification init failed:", error);
@@ -31,7 +35,7 @@ const NotificationInitializer = () => {
 		initNotifications();
 
 		const cleanup = setupNotificationListeners((newToken: string) => {
-			syncFcmToken(newToken, updateToken);
+			syncFcmToken(newToken, platform, updateToken);
 		});
 
 		return cleanup;

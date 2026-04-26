@@ -22,4 +22,5 @@ export const updatePreferencesSchema = z.object({
 
 export const fcmTokenSchema = z.object({
 	fcmToken: z.string().min(10, "Invalid FCM Token"),
+	platform: z.enum(["ios", "android"], "Platform must be either 'ios' or 'android'"),
 });

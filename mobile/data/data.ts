@@ -102,3 +102,75 @@ export const FEED_POSTS = [
 		comments: 28,
 	},
 ];
+
+export const NOTIFICATIONS = [
+	{ id: "1", type: "follow", user: "Emma Wilson", text: "started following you", time: "2h ago", avatar: "https://i.pravatar.cc/100?img=1" },
+	{
+		id: "2",
+		type: "like",
+		user: "James Chen",
+		text: "liked your review of",
+		target: "The Midnight Library",
+		time: "4h ago",
+		avatar: "https://i.pravatar.cc/100?img=11",
+		image: "https://res.cloudinary.com/dynopc0cn/image/upload/v1776190236/onboarding-screen-1_cfohlh.png",
+	},
+	{ id: "3", type: "comment", user: "Olivia Martinez", text: "replied to your review:", quote: "I completely agree with your thoughts...", time: "6h ago", avatar: "https://i.pravatar.cc/100?img=9" },
+	{
+		id: "4",
+		type: "like_multi",
+		user: "Sarah and 12 others",
+		text: "liked your review of",
+		target: "The Silent Patient",
+		time: "1d ago",
+		avatars: ["https://i.pravatar.cc/100?img=12", "https://i.pravatar.cc/100?img=5", "https://i.pravatar.cc/100?img=8"],
+		image: "https://res.cloudinary.com/dynopc0cn/image/upload/v1776190236/onboarding-screen-1_cfohlh.png",
+	},
+	{ id: "5", type: "follow", user: "Michael Brown", text: "started following you", time: "1d ago", avatar: "https://i.pravatar.cc/100?img=33" },
+	{ id: "6", type: "follow", user: "Emma Wilson", text: "started following you", time: "2h ago", avatar: "https://i.pravatar.cc/100?img=1" },
+	{
+		id: "7",
+		type: "like",
+		user: "James Chen",
+		text: "liked your review of",
+		target: "The Midnight Library",
+		time: "4h ago",
+		avatar: "https://i.pravatar.cc/100?img=11",
+		image: "https://res.cloudinary.com/dynopc0cn/image/upload/v1776190236/onboarding-screen-1_cfohlh.png",
+	},
+	{ id: "8", type: "comment", user: "Olivia Martinez", text: "replied to your review:", quote: "I completely agree with your thoughts...", time: "6h ago", avatar: "https://i.pravatar.cc/100?img=9" },
+	{
+		id: "9",
+		type: "like_multi",
+		user: "Sarah and 12 others",
+		text: "liked your review of",
+		target: "The Silent Patient",
+		time: "1d ago",
+		avatars: ["https://i.pravatar.cc/100?img=12", "https://i.pravatar.cc/100?img=5", "https://i.pravatar.cc/100?img=8"],
+		image: "https://res.cloudinary.com/dynopc0cn/image/upload/v1776190236/onboarding-screen-1_cfohlh.png",
+	},
+	{ id: "10", type: "follow", user: "Michael Brown", text: "started following you", time: "1d ago", avatar: "https://i.pravatar.cc/100?img=33" },
+];
+
+export const LIBRARY_BOOKS = [
+	{ id: "1", title: "Atomic Habits", author: "James Clear", progress: 65, totalPages: 320, status: "Reading", image: "https://res.cloudinary.com/dynopc0cn/image/upload/v1776190236/onboarding-screen-1_cfohlh.png" },
+	{ id: "2", title: "Dune", author: "Frank Herbert", progress: 12, totalPages: 412, status: "Reading", image: "https://res.cloudinary.com/dynopc0cn/image/upload/v1776190236/onboarding-screen-1_cfohlh.png" }, // Add a mock image
+	{ id: "3", title: "1984", author: "George Orwell", status: "To Read", image: "https://res.cloudinary.com/dynopc0cn/image/upload/v1776190236/onboarding-screen-1_cfohlh.png" }, // Add a mock image
+	{ id: "4", title: "The Midnight Library", author: "Matt Haig", status: "Completed", image: "https://res.cloudinary.com/dynopc0cn/image/upload/v1776190236/onboarding-screen-1_cfohlh.png" },
+];
+
+export const REVIEWS_DATA = [
+	{ id: "1", title: "The Midnight Library", rating: 5, text: "Absolutely captivating story about...", image: "https://res.cloudinary.com/dynopc0cn/image/upload/v1776190236/onboarding-screen-1_cfohlh.png" },
+	{ id: "2", title: "Where the Crawdads Sing", rating: 4, text: "A beautiful tale of resilience and...", image: "https://res.cloudinary.com/dynopc0cn/image/upload/v1776190236/onboarding-screen-1_cfohlh.png" },
+	{ id: "3", title: "The Silent Patient", rating: 5, text: "Mind-blowing psychological thriller...", image: "https://res.cloudinary.com/dynopc0cn/image/upload/v1776190236/onboarding-screen-1_cfohlh.png" },
+	{ id: "4", title: "Educated", rating: 5, text: "Powerful memoir about transformation...", image: "https://res.cloudinary.com/dynopc0cn/image/upload/v1776190236/onboarding-screen-1_cfohlh.png" },
+];
+
+export const CATEGORY_BOOKS = [
+	{ id: "1", title: "The Midnight Library", author: "Matt Haig", rating: 4.5, image: "https://res.cloudinary.com/dynopc0cn/image/upload/v1776190236/onboarding-screen-1_cfohlh.png" },
+	{ id: "2", title: "Project Hail Mary", author: "Andy Weir", rating: 4.8, image: "https://res.cloudinary.com/dynopc0cn/image/upload/v1776190236/onboarding-screen-1_cfohlh.png" },
+	{ id: "3", title: "The Silent Patient", author: "Alex Michaelides", rating: 4.7, image: "https://res.cloudinary.com/dynopc0cn/image/upload/v1776190236/onboarding-screen-1_cfohlh.png" },
+	{ id: "4", title: "Educated", author: "Tara Westover", rating: 4.9, image: "https://res.cloudinary.com/dynopc0cn/image/upload/v1776190236/onboarding-screen-1_cfohlh.png" },
+	{ id: "5", title: "Circe", author: "Madeline Miller", rating: 4.6, image: "https://res.cloudinary.com/dynopc0cn/image/upload/v1776190236/onboarding-screen-1_cfohlh.png" },
+	{ id: "6", title: "Normal People", author: "Sally Rooney", rating: 4.2, image: "https://res.cloudinary.com/dynopc0cn/image/upload/v1776190236/onboarding-screen-1_cfohlh.png" },
+];

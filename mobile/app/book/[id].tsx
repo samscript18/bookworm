@@ -7,13 +7,12 @@ import { BookTabType } from "@/types/book/book";
 import { bookDescription, reviews } from "@/data/data";
 import ReviewCard from "@/components/ui/review-card";
 import { StarRow } from "@/components/ui/star-row";
-import { useAppTheme } from "@/providers/theme";
+import { useThemeStore } from "@/store/useThemeStore";
 
 const BookDetails = () => {
 	const router = useRouter();
-	const params = useLocalSearchParams<{ id?: string }>();
-	const theme = useAppTheme();
-	const isDark = theme.mode === "dark";
+	const { id } = useLocalSearchParams<{ id: string }>();
+	const { theme, isDark } = useThemeStore();
 	const [activeTab, setActiveTab] = useState<BookTabType>("Details");
 
 	const renderDetails = () => (
@@ -121,7 +120,7 @@ const BookDetails = () => {
 	);
 
 	return (
-		<SafeAreaView className="flex-1" style={{ backgroundColor: isDark ? "#0E0F13" : "#F7F7FA" }} edges={["top"]}>
+		<SafeAreaView className="flex-1" style={{ backgroundColor: theme.colors.background }} edges={["top"]}>
 			<ScrollView showsVerticalScrollIndicator={false}>
 				<View className="pt-2 pb-4">
 					<View className="absolute top-0 left-2 z-10">
@@ -130,7 +129,7 @@ const BookDetails = () => {
 							className="w-10 h-10 rounded-full items-center justify-center"
 							style={{ backgroundColor: isDark ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.1)" }}
 						>
-							<Ionicons name="chevron-back" size={24} color={isDark ? "#FFFFFF" : "#111827"} />
+							<Ionicons name="arrow-back" size={24} color={isDark ? "#FFFFFF" : "#111827"} />
 						</TouchableOpacity>
 					</View>
 				</View>
@@ -158,7 +157,7 @@ const BookDetails = () => {
 
 					<View className="flex-row justify-between w-full mt-6 mb-3 gap-x-4">
 						<TouchableOpacity className="flex-1 py-4 rounded-[16px] items-center" style={{ backgroundColor: theme.colors.primary }}>
-							<Text className="text-white text-base font-bold">Rate Book</Text>
+							<Text className="text-white text-base font-bold">Read Book</Text>
 						</TouchableOpacity>
 						<TouchableOpacity
 							className="flex-1 py-4 rounded-[16px] items-center"
@@ -167,7 +166,7 @@ const BookDetails = () => {
 								router.push({
 									pathname: "/book/write-review",
 									params: {
-										bookId: params.id ?? "1",
+										bookId: id ?? "1",
 										bookTitle: "The Midnight Library",
 										author: "Matt Haig",
 										cover: "https://res.cloudinary.com/dynopc0cn/image/upload/v1776190236/onboarding-screen-1_cfohlh.png",
@@ -186,7 +185,7 @@ const BookDetails = () => {
 							<TouchableOpacity
 								key={tab}
 								onPress={() => setActiveTab(tab)}
-								className="w-1/3 rounded-xl p-3"
+								className="w-1/3 rounded-xl p-4"
 								style={{ backgroundColor: activeTab === tab ? (isDark ? "#2B2140" : "#EDE5FF") : "transparent" }}
 							>
 								<Text className="text-center text-base font-semibold" style={{ color: activeTab === tab ? theme.colors.primary : theme.colors.textSecondary }}>

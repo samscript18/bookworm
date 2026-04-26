@@ -8,11 +8,11 @@ import { googleAuth } from "@/lib/services/auth.service";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "@/lib/utils/toast";
 import { User } from "@/types/user/user";
-import { useAppTheme } from "@/providers/theme";
+import { useThemeStore } from "@/store/useThemeStore";
 
 const SignUpOption = () => {
 	const router = useRouter();
-	const theme = useAppTheme();
+	const { theme } = useThemeStore();
 	const { setRegistrationStep, setAccessToken, setIsAuthenticated, setUser } = useAuthStore();
 
 	const handleEmailSignUp = () => {

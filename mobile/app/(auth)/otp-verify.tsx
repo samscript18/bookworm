@@ -4,14 +4,14 @@ import { Ionicons } from "@expo/vector-icons";
 import { Link, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuthStore } from "@/store/useAuthStore";
-import { useAppTheme } from "@/providers/theme";
+import { useThemeStore } from "@/store/useThemeStore";
 
 const OtpVerification = () => {
 	const router = useRouter();
-	const theme = useAppTheme();
-	const isDark = theme.mode === "dark";
+	const { theme, isDark } = useThemeStore();
 	const [code, setCode] = useState<Array<string>>(["", "", "", "", "", ""]);
 	const inputRefs = useRef<Array<TextInput | null>>([]);
+	const [isFocused, setIsFocused] = useState<{ [key: number]: boolean }>({});
 	const { setForgotPasswordToken, setPasswordResetStep } = useAuthStore();
 
 	useEffect(() => {
@@ -80,7 +80,7 @@ const OtpVerification = () => {
 							}}
 							className="h-16 w-14 rounded-2xl border text-center text-xl font-bold"
 							style={{
-								borderColor: theme.colors.inputBorder,
+								borderColor: isFocused[index] ? theme.colors.primary : theme.colors.inputBorder,
 								backgroundColor: isDark ? theme.colors.surfaceMuted : theme.colors.surface,
 								color: theme.colors.textPrimary,
 							}}
@@ -90,6 +90,18 @@ const OtpVerification = () => {
 							value={digit}
 							onChangeText={(value) => handleChangeDigit(value, index)}
 							onKeyPress={({ nativeEvent }) => handleKeyPress(nativeEvent.key, index)}
+							onFocus={() =>
+								setIsFocused((prev) => ({
+									...prev,
+									[index]: true,
+								}))
+							}
+							onBlur={() =>
+								setIsFocused((prev) => ({
+									...prev,
+									[index]: false,
+								}))
+							}
 						/>
 					))}
 				</View>

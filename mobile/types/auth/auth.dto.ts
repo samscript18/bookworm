@@ -25,3 +25,8 @@ export type ResetPasswordDto = {
 export type GoogleAuthDto = {
 	idToken: string;
 };
+
+export type LogoutDto = {
+	token: string;
+	platform: "ios" | "android";
+};

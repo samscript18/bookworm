@@ -108,11 +108,17 @@ export class UserService {
 		}
 	}
 
-	static async addFcmToken(userId: string, token: string) {
-		return await User.findByIdAndUpdate(userId, { $addToSet: { fcmTokens: token } }, { new: true });
+	static async addFcmToken(userId: string, { fcmToken, platform }: { fcmToken: string; platform: string }) {
+		await User.updateMany({ "fcmTokens.token": fcmToken }, { $pull: { fcmTokens: { token: fcmToken } } });
+
+		const user = await User.findByIdAndUpdate(userId, { $addToSet: { fcmTokens: { token: fcmToken, platform } } }, { returnDocument: "after" });
+
+		return user;
 	}
 
-	static async removeFcmToken(userId: string, token: string) {
-		return await User.findByIdAndUpdate(userId, { $pull: { fcmTokens: token } }, { new: true });
+	static async removeFcmToken(userId: string, { fcmToken, platform }: { fcmToken: string; platform: string }) {
+		const user = await User.findByIdAndUpdate(userId, { $pull: { fcmTokens: { token: fcmToken, platform } } }, { returnDocument: "after" });
+
+		return user;
 	}
 }

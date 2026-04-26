@@ -11,11 +11,11 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { resetPassword } from "@/lib/services/auth.service";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "@/lib/utils/toast";
-import { useAppTheme } from "@/providers/theme";
+import { useThemeStore } from "@/store/useThemeStore";
 
 const ResetPassword = () => {
 	const router = useRouter();
-	const theme = useAppTheme();
+	const { theme } = useThemeStore();
 	const [showPassword, setShowPassword] = useState<boolean>(false);
 	const [showConfirm, setShowConfirm] = useState<boolean>(false);
 	const { forgotPasswordToken, setPasswordResetStep } = useAuthStore();
@@ -98,7 +98,7 @@ const ResetPassword = () => {
 									style={{
 										backgroundColor: theme.colors.surfaceMuted,
 										borderWidth: 1,
-										borderColor: errors.password ? theme.colors.error : theme.colors.inputBorder,
+										borderColor: errors.password ? theme.colors.error : theme.colors.primary,
 									}}
 								>
 									<TextInput
@@ -134,7 +134,7 @@ const ResetPassword = () => {
 									style={{
 										backgroundColor: theme.colors.surfaceMuted,
 										borderWidth: 1,
-										borderColor: errors.confirmPassword ? theme.colors.error : theme.colors.inputBorder,
+										borderColor: errors.confirmPassword ? theme.colors.error : theme.colors.primary,
 									}}
 								>
 									<TextInput

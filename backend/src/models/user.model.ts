@@ -22,10 +22,9 @@ export interface IUser extends Document {
 	resetBlockedUntil: Date | null;
 	loginAttempts: number;
 	loginBlockedUntil: Date | null;
-	fcmTokens: string[];
+	fcmTokens: { token: string; platform: string }[];
 	preferences: {
 		pushNotifications: boolean;
-		darkMode: boolean;
 	};
 	createdAt: Date;
 	updatedAt: Date;
@@ -56,10 +55,9 @@ const UserSchema: Schema = new Schema(
 		resetBlockedUntil: { type: Date, default: null },
 		loginAttempts: { type: Number, default: 0 },
 		loginBlockedUntil: { type: Date, default: null },
-		fcmTokens: [{ type: String }],
+		fcmTokens: [{ token: { type: String }, platform: { type: String, enum: ["ios", "android"] } }],
 		preferences: {
 			pushNotifications: { type: Boolean, default: true },
-			darkMode: { type: Boolean, default: false },
 		},
 	},
 	{ timestamps: true },
@@ -69,6 +67,7 @@ UserSchema.index({ followers: 1 });
 UserSchema.index({ following: 1 });
 UserSchema.index({ savedBooks: 1 });
 UserSchema.index({ resetPasswordToken: 1 });
+UserSchema.index({ "fcmTokens.token": 1 });
 
 export const User = mongoose.model<IUser>("User", UserSchema);
 export type UserDocument = HydratedDocument<IUser>;
