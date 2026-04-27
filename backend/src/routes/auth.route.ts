@@ -1,10 +1,11 @@
 import { Router } from "express";
-import { forgotPassword, googleAuth, login, register, resetPassword } from "../controllers/auth.controller";
+import { checkEmailExistence, checkUsernameExistence, forgotPassword, googleAuth, login, register, resetPassword } from "../controllers/auth.controller";
 import { authLimiter, strictAuthLimiter } from "../middleware/rateLimiter";
-import { auth } from "google-auth-library";
 
 export const authRoutes: Router = Router();
 
+authRoutes.post("/check-email", checkEmailExistence);
+authRoutes.post("/check-username", checkUsernameExistence);
 authRoutes.post("/signup", [authLimiter], register);
 authRoutes.post("/login", [authLimiter], login);
 authRoutes.post("/forgot-password", [strictAuthLimiter], forgotPassword);

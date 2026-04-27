@@ -1,10 +1,4 @@
 import z from "zod";
-import { passwordValidation } from "./auth.schema";
-
-export const changePasswordSchema = z.object({
-	currentPassword: passwordValidation,
-	newPassword: passwordValidation,
-});
 
 export const editProfileSchema = z.object({
 	firstName: z.string().min(3, "First Name must be at least 3 characters").optional(),
@@ -15,11 +9,4 @@ export const editProfileSchema = z.object({
 	bio: z.string().max(300, "Bio must be at most 300 characters").optional(),
 });
 
-export const updatePreferencesSchema = z.object({
-	pushNotifications: z.boolean().optional(),
-});
 
-export const fcmTokenSchema = z.object({
-	fcmToken: z.string().min(10, "Invalid FCM Token"),
-	platform: z.enum(["ios", "android"], "Platform must be either 'ios' or 'android'"),
-});

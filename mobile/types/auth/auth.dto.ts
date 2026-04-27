@@ -30,3 +30,11 @@ export type LogoutDto = {
 	token: string;
 	platform: "ios" | "android";
 };
+
+export type CheckEmailDto = {
+	email: string;
+};
+
+export type CheckUsernameDto = {
+	username: string;
+};

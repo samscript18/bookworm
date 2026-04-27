@@ -28,6 +28,16 @@ export class AuthService {
 		return username;
 	}
 
+	static async checkExistingEmail(email: string) {
+		const isExisting = await User.exists({ email });
+		return { exists: !!isExisting };
+	}
+
+	static async checkExistingUsername(username: string) {
+		const isExisting = await User.exists({ userName: username });
+		return { exists: !!isExisting };
+	}
+
 	static async register(data: { firstName: string; lastName: string; userName: string; email: string; password: string; profileImage?: string; bio?: string }) {
 		const existing = await User.findOne({ email: data.email });
 		if (existing) throw new BadRequestsException("Account already exists", ErrorCode.ALREADY_EXISTS);

@@ -72,9 +72,9 @@ export const getReviewsByBook = asyncHandler(async (req: Request, res: Response)
 });
 
 export const getReviewsByUser = asyncHandler(async (req: Request, res: Response) => {
-	if (!req.user) throw new UnAuthorizedException("User not authenticated", ErrorCode.AUTH_REQUIRED);
+	const userId = req.params.userId as string;
 
-	const userId = req.user._id.toString();
+	if (!userId) throw new UnprocessableEntity("User ID is required", ErrorCode.UNPROCESSABLE_ENTITY, {});
 
 	const reviews = await ReviewService.getReviewsByUser(userId);
 
@@ -92,6 +92,8 @@ export const editReview = asyncHandler(async (req: Request, res: Response) => {
 	const userId = req.user._id.toString();
 	const reviewId = req.params.reviewId as string;
 
+	if (!reviewId) throw new UnprocessableEntity("Review ID is required", ErrorCode.UNPROCESSABLE_ENTITY, {});
+
 	const filteredData = Object.fromEntries(Object.entries(parsed.data).filter(([, v]) => v !== undefined));
 
 	const review = await ReviewService.editReview(reviewId, userId, filteredData);
@@ -103,6 +105,8 @@ export const deleteReview = asyncHandler(async (req: Request, res: Response) => 
 
 	const userId = req.user._id.toString();
 	const reviewId = req.params.reviewId as string;
+
+	if (!reviewId) throw new UnprocessableEntity("Review ID is required", ErrorCode.UNPROCESSABLE_ENTITY, {});
 
 	await ReviewService.deleteReview(reviewId, userId);
 	res.json({ success: true, message: "Review deleted successfully" });

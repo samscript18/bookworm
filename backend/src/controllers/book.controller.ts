@@ -50,7 +50,7 @@ export const getAllBooks = asyncHandler(async (req: Request, res: Response) => {
 	const query = { page: parsed.data.page ?? 1, limit: parsed.data.limit ?? 30, search: parsed.data.search ?? "" };
 
 	const result = await BookService.getAllBooks(query);
-	res.json({ success: true, message: "All books fetched successfully", data: result });
+	res.json({ success: true, message: "All books fetched successfully", data: result.books, meta: result.meta });
 });
 
 export const getBookById = asyncHandler(async (req: Request, res: Response) => {

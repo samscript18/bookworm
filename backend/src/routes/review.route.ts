@@ -5,7 +5,7 @@ import authMiddleware from "../middleware/auth";
 export const reviewRoutes: Router = Router();
 
 reviewRoutes.get("/home-feed", [authMiddleware], getHomeFeed);
-reviewRoutes.get("/user/me", [authMiddleware], getReviewsByUser);
+reviewRoutes.get("/user/:userId", [authMiddleware], getReviewsByUser);
 reviewRoutes.get("/book/:bookId", [authMiddleware], getReviewsByBook);
 reviewRoutes.post("/:bookId", [authMiddleware], postReview);
 reviewRoutes.patch("/:reviewId", [authMiddleware], editReview);

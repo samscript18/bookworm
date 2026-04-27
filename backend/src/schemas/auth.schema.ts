@@ -37,3 +37,10 @@ export const resetPasswordSchema = z.object({
 	password: passwordValidation,
 });
 
+export const emailExistenceSchema = z.object({
+	email: z.email("Invalid email format").trim().toLowerCase(),
+});
+
+export const usernameExistenceSchema = z.object({
+	username: z.string().min(4, "Username must be at least 4 characters"),
+});

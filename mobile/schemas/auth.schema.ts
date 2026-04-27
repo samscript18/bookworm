@@ -41,3 +41,11 @@ export const resetPasswordSchema = z
 		message: "Passwords do not match",
 		path: ["confirmPassword"],
 	});
+
+export const emailExistenceSchema = z.object({
+	email: z.email("Invalid email format").trim().toLowerCase(),
+});
+
+export const usernameExistenceSchema = z.object({
+	username: z.string().min(4, "Username must be at least 4 characters"),
+});

@@ -1,4 +1,4 @@
-import { forgotPasswordSchema, loginSchema, resetPasswordSchema, signupSchema } from "@/schemas/auth.schema";
+import { emailExistenceSchema, forgotPasswordSchema, loginSchema, resetPasswordSchema, signupSchema, usernameExistenceSchema } from "@/schemas/auth.schema";
 import z from "zod";
 
 export type LoginType = z.infer<typeof loginSchema>;
@@ -14,3 +14,4 @@ export type PersistedAuthStore = {
 		accessToken?: string;
 	};
 };
+

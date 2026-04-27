@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, ScrollView, Image, ActivityIndicator, KeyboardAvoidingView, Platform, Alert } from "react-native";
 import { Link, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -7,13 +7,14 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { Controller, FieldPath, useForm } from "react-hook-form";
 import { SignUpType } from "@/types/auth/auth.form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { signupSchema } from "@/schemas/auth.schema";
-import { useMutation } from "@tanstack/react-query";
-import { signup } from "@/lib/services/auth.service";
+import { emailExistenceSchema, signupSchema, usernameExistenceSchema } from "@/schemas/auth.schema";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { checkEmail, checkUsername, signup } from "@/lib/services/auth.service";
 import { User } from "@/types/user/user";
 import { toast } from "@/lib/utils/toast";
 import { uploadSingleImage } from "@/lib/services/upload.service";
 import { useThemeStore } from "@/store/useThemeStore";
+import { useDebounce } from "@/hooks/useDebounce";
 
 const TOTAL_STEPS = 6;
 const STEP_FIELDS: Record<number, FieldPath<SignUpType>[]> = {
@@ -40,6 +41,8 @@ const SignUp = () => {
 		getValues,
 		setValue,
 		watch,
+		setError,
+		clearErrors,
 	} = useForm<SignUpType>({
 		resolver: zodResolver(signupSchema),
 		defaultValues: {
@@ -52,6 +55,27 @@ const SignUp = () => {
 			profileImage: registrationData.profileImage,
 		},
 	});
+
+	const emailValue = watch("email");
+	const isEmailValid = !!emailValue && emailExistenceSchema.safeParse({ email: emailValue }).success;
+
+	const { isFetching: isCheckingEmail, data: emailData } = useQuery({
+		queryKey: ["check-email", emailValue],
+		queryFn: () => checkEmail({ email: emailValue }),
+		enabled: !!isEmailValid && !!emailValue,
+		retry: false,
+	});
+
+	const usernameValue = watch("userName");
+	const isUsernameValid = !!usernameValue && usernameExistenceSchema.safeParse({ username: usernameValue }).success;
+
+	const { isFetching: isCheckingUsername, data: usernameData } = useQuery({
+		queryKey: ["check-username", usernameValue],
+		queryFn: () => checkUsername({ username: usernameValue }),
+		enabled: !!isUsernameValid && !!usernameValue,
+		retry: false,
+	});
+
 	const passwordValue = watch("password") || "";
 	const passwordRequirements = [
 		{ label: "At least 8 characters", met: passwordValue.length >= 8 },
@@ -114,6 +138,20 @@ const SignUp = () => {
 		);
 	};
 
+	useEffect(() => {
+		if (emailData?.exists) {
+			setError("email", { type: "manual", message: "Email already taken" });
+		} else {
+			clearErrors("email");
+		}
+
+		if (usernameData?.exists) {
+			setError("userName", { type: "manual", message: "Username already taken" });
+		} else {
+			clearErrors("userName");
+		}
+	}, [emailData, usernameData, setError, clearErrors]);
+
 	const renderStepContent = () => {
 		switch (step) {
 			case 1:
@@ -126,23 +164,35 @@ const SignUp = () => {
 							control={control}
 							name="email"
 							render={({ field: { onChange, value } }) => (
-								<View className="mb-[15px]">
-									<TextInput
-										placeholder="Email address"
-										placeholderTextColor={theme.colors.textMuted}
-										keyboardType="email-address"
-										autoCapitalize="none"
-										className="rounded-2xl p-6 text-base"
-										style={getInputStyle(!!errors.email)}
-										value={value}
-										onChangeText={(val) => {
-											onChange(val);
-											setRegistrationData({ email: val });
-											void trigger("email");
-										}}
-										onFocus={() => setIsFocused({ ...isFocused, email: true })}
-										onBlur={() => setIsFocused({ ...isFocused, email: false })}
-									/>
+								<View className="mb-[15px] relative">
+									<View className="relative justify-center">
+										<TextInput
+											placeholder="Email address"
+											placeholderTextColor={theme.colors.textMuted}
+											keyboardType="email-address"
+											autoCapitalize="none"
+											className="rounded-2xl p-6 pr-14 text-base"
+											style={getInputStyle(!!errors.email)}
+											value={value}
+											onChangeText={(val) => {
+												onChange(val);
+												setRegistrationData({ email: val });
+											}}
+											onFocus={() => setIsFocused({ ...isFocused, email: true })}
+											onBlur={() => setIsFocused({ ...isFocused, email: false })}
+										/>
+
+										<View className="absolute right-5">
+											{isCheckingEmail ? (
+												<ActivityIndicator size="small" color="#7F3DFF" />
+											) : isEmailValid && emailData && !emailData.exists ? (
+												<Ionicons name="checkmark-circle" size={24} color={theme.colors.primary} />
+											) : isEmailValid && emailData && emailData.exists ? (
+												<Ionicons name="close-circle" size={24} color={theme.colors.error} />
+											) : null}
+										</View>
+									</View>
+
 									{getErrorText(errors.email?.message)}
 								</View>
 							)}
@@ -277,9 +327,20 @@ const SignUp = () => {
 										onChangeText={(val) => {
 											onChange(val);
 											setRegistrationData({ userName: val });
-											void trigger("userName");
+											// void trigger("userName");
 										}}
 									/>
+
+									<View className="absolute top-5 right-5">
+										{isCheckingUsername ? (
+											<ActivityIndicator size="small" color="#7F3DFF" />
+										) : isUsernameValid && usernameData && !usernameData.exists ? (
+											<Ionicons name="checkmark-circle" size={24} color={theme.colors.primary} />
+										) : isUsernameValid && usernameData && usernameData.exists ? (
+											<Ionicons name="close-circle" size={24} color={theme.colors.error} />
+										) : null}
+									</View>
+
 									{getErrorText(errors.userName?.message)}
 								</View>
 							)}
@@ -409,7 +470,16 @@ const SignUp = () => {
 	return (
 		<ScrollView className="flex-1 px-5 pt-12 pb-10" style={{ backgroundColor: theme.colors.background }} showsVerticalScrollIndicator={false}>
 			<KeyboardAvoidingView className="flex-1" behavior={Platform.OS === "ios" ? "padding" : "height"}>
-				<TouchableOpacity onPress={() => router.back()} className="my-6">
+				<TouchableOpacity
+					onPress={() => {
+						if (step === 1) {
+							router.back();
+						} else {
+							setRegistrationStep(Math.max(1, step - 1));
+						}
+					}}
+					className="my-6"
+				>
 					<Ionicons name="chevron-back" size={28} color={theme.colors.textPrimary} />
 				</TouchableOpacity>
 
@@ -441,7 +511,12 @@ const SignUp = () => {
 						</Text>
 					</TouchableOpacity>
 
-					<TouchableOpacity className="w-[48%] items-center rounded-2xl p-4" style={{ backgroundColor: theme.colors.primary }} onPress={handleNext} disabled={isSubmitting || isSigningUp || isUploadingImage}>
+					<TouchableOpacity
+						className="w-[48%] items-center rounded-2xl p-4"
+						style={{ backgroundColor: theme.colors.primary }}
+						onPress={handleNext}
+						disabled={isSubmitting || isSigningUp || isUploadingImage || !!errors.email || !!errors.userName}
+					>
 						{isSubmitting || isSigningUp || isUploadingImage ? (
 							<ActivityIndicator size={20} color={theme.colors.onPrimary} />
 						) : (

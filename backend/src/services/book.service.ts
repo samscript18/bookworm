@@ -41,7 +41,6 @@ export class BookService {
 				totalPages,
 				currentPage: paginationQuery.page || 1,
 				count,
-				limit,
 			},
 		};
 	}

@@ -1,4 +1,4 @@
-import { ForgotPasswordDto, GoogleAuthDto, LoginDto, LogoutDto, ResetPasswordDto, SignUpDto } from "@/types/auth/auth.dto";
+import { CheckEmailDto, CheckUsernameDto, ForgotPasswordDto, GoogleAuthDto, LoginDto, LogoutDto, ResetPasswordDto, SignUpDto } from "@/types/auth/auth.dto";
 import { AxiosErrorShape, errorHandler } from "../config/axios-error";
 import { publicApi } from "../config/axios-instance";
 import { ApiResponse } from "@/types/api";
@@ -7,10 +7,28 @@ import { signInWithGoogle } from "../config/google";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import { removeFcmToken } from "./user.service";
 
+export const checkEmail = async (data: CheckEmailDto) => {
+	try {
+		const response = await publicApi.post<ApiResponse<{ exists: boolean }>>("/auth/check-email", data);
+		return response.data.data;
+	} catch (error) {
+		errorHandler(error as AxiosErrorShape | string);
+		throw error;
+	}
+};
+export const checkUsername = async (data: CheckUsernameDto) => {
+	try {
+		const response = await publicApi.post<ApiResponse<{ exists: boolean }>>("/auth/check-username", data);
+
+		return response.data.data;
+	} catch (error) {
+		errorHandler(error as AxiosErrorShape | string);
+		throw error;
+	}
+};
 export const login = async (data: LoginDto) => {
 	try {
 		const response = await publicApi.post<ApiResponse<{ user: User; token: string }>>("/auth/login", data);
-		console.log("Login response:", response.data);
 
 		return response.data.data;
 	} catch (error) {

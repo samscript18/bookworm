@@ -1,9 +1,26 @@
 import { Request, Response } from "express";
 import { asyncHandler } from "../middleware/asyncHandler";
 import { AuthService } from "../services/auth.service";
-import { registerSchema, loginSchema, forgotPasswordSchema, resetPasswordSchema, googleAuthSchema } from "../schemas/auth.schema";
+import { registerSchema, loginSchema, forgotPasswordSchema, resetPasswordSchema, googleAuthSchema, emailExistenceSchema, usernameExistenceSchema } from "../schemas/auth.schema";
 import { UnprocessableEntity } from "../exceptions/exceptions";
 import { ErrorCode } from "../exceptions/root";
+
+export const checkEmailExistence = asyncHandler(async (req: Request, res: Response) => {
+	const parsed = emailExistenceSchema.safeParse(req.body);
+
+	if (!parsed.success) throw new UnprocessableEntity("Validation error", ErrorCode.UNPROCESSABLE_ENTITY, parsed.error);
+
+	const result = await AuthService.checkExistingEmail(parsed.data.email);
+	res.json({ success: true, message: `Email ${result.exists ? "already " : "does not "} exists`, data: result });
+});
+
+export const checkUsernameExistence = asyncHandler(async (req: Request, res: Response) => {
+	const parsed = usernameExistenceSchema.safeParse(req.body);
+	if (!parsed.success) throw new UnprocessableEntity("Validation error", ErrorCode.UNPROCESSABLE_ENTITY, parsed.error);
+
+	const result = await AuthService.checkExistingUsername(parsed.data.username);
+	res.json({ success: true, message: `Username ${result.exists ? "already " : "does not "} exists`, data: result });
+});
 
 export const register = asyncHandler(async (req: Request, res: Response) => {
 	const parsed = registerSchema.safeParse(req.body);

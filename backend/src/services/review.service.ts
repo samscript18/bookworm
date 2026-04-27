@@ -1,8 +1,8 @@
-import { PipelineStage, QueryFilter, Types } from "mongoose";
+import { PipelineStage, Types } from "mongoose";
 import { NotFoundException } from "../exceptions/exceptions";
 import { ErrorCode } from "../exceptions/root";
 import { Book } from "../models/book.model";
-import { IReview, Review } from "../models/review.model";
+import { Review } from "../models/review.model";
 import { User } from "../models/user.model";
 import { NotificationService } from "./notification.service";
 import { NotificationType } from "../models/notification.model";

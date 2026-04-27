@@ -279,7 +279,6 @@ const swaggerSpec = {
 									totalPages: { type: "integer", example: 12 },
 									currentPage: { type: "integer", example: 1 },
 									count: { type: "integer", example: 342 },
-									limit: { type: "integer", example: 30 },
 								},
 							},
 						},

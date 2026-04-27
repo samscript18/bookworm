@@ -6,10 +6,27 @@ import { Link, useRouter } from "expo-router";
 import { StarRow } from "@/components/ui/star-row";
 import { FEED_POSTS, TRENDING_BOOKS } from "@/data/data";
 import { useThemeStore } from "@/store/useThemeStore";
+// import { useInfiniteQuery } from "@tanstack/react-query";
+// import { getHomeFeed } from "@/lib/services/review.service";
 
 const HomeFeed = () => {
 	const { theme } = useThemeStore();
 	const router = useRouter();
+
+	// const { data, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery({
+	// 		queryKey: ["home-feed"],
+	// 		queryFn: ({ pageParam }) =>
+	// 			getHomeFeed({
+	// 				cursor: pageParam,
+	// 				limit: 20,
+	// 			}),
+
+	// 		getNextPageParam: (lastPage) => {
+	// 			return lastPage.nextCursor ?? undefined;
+	// 		},
+	// 	});
+
+	// const reviews = data?.pages.flatMap((page) => page.reviews) ?? [];
 
 	return (
 		<SafeAreaView className="flex-1" style={{ backgroundColor: theme.colors.background }} edges={["top"]}>
@@ -62,6 +79,16 @@ const HomeFeed = () => {
 				</View>
 
 				<View className="px-4 mt-4">
+					{/* <FlatList
+						data={reviews}
+						keyExtractor={(item) => item._id}
+						renderItem={({ item }) => <ReviewCard review={item} />}
+						onEndReached={() => {
+							if (hasNextPage) fetchNextPage();
+						}}
+						onEndReachedThreshold={0.5}
+						ListFooterComponent={isFetchingNextPage ? <ActivityIndicator /> : null}
+					/> */}
 					{FEED_POSTS.map((post) => (
 						<View key={post.id} className="mb-8 pb-6" style={{ borderBottomWidth: 1, borderBottomColor: theme.colors.surfaceMuted }}>
 							<View className="flex-row items-center justify-between mb-3">
