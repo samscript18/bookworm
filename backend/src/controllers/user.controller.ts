@@ -3,7 +3,8 @@ import { UnAuthorizedException, UnprocessableEntity } from "../exceptions/except
 import { ErrorCode } from "../exceptions/root";
 import { asyncHandler } from "../middleware/asyncHandler";
 import { UserService } from "../services/user.service";
-import { changePasswordSchema, editProfileSchema, fcmTokenSchema, updatePreferencesSchema } from "../schemas/user.schema";
+import { changePasswordSchema, editProfileSchema, fcmTokenSchema, updatePreferencesSchema, getNotificationsSchema } from "../schemas/user.schema";
+import { NotificationService } from "../services/notification.service";
 
 export const changePassword = asyncHandler(async (req: Request, res: Response) => {
 	const parsed = changePasswordSchema.safeParse(req.body);
@@ -101,4 +102,29 @@ export const removeFcmToken = asyncHandler(async (req: Request, res: Response) =
 	await UserService.removeFcmToken(userId, { fcmToken: parsed.data.fcmToken, platform: parsed.data.platform });
 
 	res.status(200).json({ success: true });
+});
+
+export const getNotifications = asyncHandler(async (req: Request, res: Response) => {
+	if (!req.user) throw new UnAuthorizedException("User not authenticated", ErrorCode.AUTH_REQUIRED);
+	const userId = req.user._id.toString();
+
+	const parsed = getNotificationsSchema.safeParse(req.query);
+	if (!parsed.success) {
+		throw new UnprocessableEntity("Invalid query parameters", ErrorCode.UNPROCESSABLE_ENTITY, parsed.error);
+	}
+
+	const { category, page, limit } = parsed.data;
+
+	const result = await NotificationService.getGroupedNotifications(userId, category, page, limit);
+
+	res.status(200).json({
+		success: true,
+		message: "Notifications fetched successfully",
+		data: result.data,
+		meta: {
+			totalPages: result.meta.totalPages,
+			currentPage: result.meta.currentPage,
+			count: result.meta.count,
+		},
+	});
 });

@@ -83,3 +83,13 @@ export const getSavedBooks = asyncHandler(async (req: Request, res: Response) =>
 	const savedBooks = await BookService.getSavedBooks(userId);
 	res.json({ success: true, message: "Saved books fetched successfully", data: savedBooks });
 });
+
+export const getTrendingGenres = asyncHandler(async (req: Request, res: Response) => {
+	const trendingGenres = await BookService.getTrendingGenres();
+	res.json({ success: true, message: "Trending genres fetched successfully", data: trendingGenres });
+});
+
+export const getAllGenres = asyncHandler(async (req: Request, res: Response) => {
+	const result = await BookService.getAllGenres();
+	res.json({ success: true, message: "All genres fetched successfully", data: result.genres, meta: result.meta });
+});

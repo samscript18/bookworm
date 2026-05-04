@@ -14,7 +14,6 @@ import { User } from "@/types/user/user";
 import { toast } from "@/lib/utils/toast";
 import { uploadSingleImage } from "@/lib/services/upload.service";
 import { useThemeStore } from "@/store/useThemeStore";
-import { useDebounce } from "@/hooks/useDebounce";
 
 const TOTAL_STEPS = 6;
 const STEP_FIELDS: Record<number, FieldPath<SignUpType>[]> = {
@@ -327,7 +326,6 @@ const SignUp = () => {
 										onChangeText={(val) => {
 											onChange(val);
 											setRegistrationData({ userName: val });
-											// void trigger("userName");
 										}}
 									/>
 

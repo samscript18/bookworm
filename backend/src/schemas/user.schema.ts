@@ -23,3 +23,9 @@ export const fcmTokenSchema = z.object({
 	fcmToken: z.string().min(10, "Invalid FCM Token"),
 	platform: z.enum(["ios", "android"], "Platform must be either 'ios' or 'android'"),
 });
+
+export const getNotificationsSchema = z.object({
+	category: z.enum(["all", "mentions"]).default("all"),
+	page: z.number().min(1).default(1),
+	limit: z.number().min(1).max(100).default(20),
+});

@@ -372,9 +372,127 @@ const swaggerSpec = {
 					},
 				},
 			},
+			ExistenceCheckResponse: {
+				type: "object",
+				properties: {
+					success: { type: "boolean", example: true },
+					message: { type: "string", example: "Email already exists" },
+					data: {
+						type: "object",
+						properties: {
+							exists: { type: "boolean", example: true },
+						},
+					},
+				},
+			},
+			Genre: {
+				type: "object",
+				properties: {
+					name: { type: "string", example: "Fantasy" },
+					count: { type: "integer", example: 42 },
+				},
+			},
+			GenresSuccessResponse: {
+				type: "object",
+				properties: {
+					success: { type: "boolean", example: true },
+					message: { type: "string", example: "All genres fetched successfully" },
+					data: {
+						type: "array",
+						items: { $ref: "#/components/schemas/Genre" },
+					},
+					meta: {
+						type: "object",
+						properties: {
+							total: { type: "integer", example: 28 },
+							page: { type: "integer", example: 1 },
+							limit: { type: "integer", example: 20 },
+						},
+					},
+				},
+			},
+			TrendingGenresSuccessResponse: {
+				type: "object",
+				properties: {
+					success: { type: "boolean", example: true },
+					message: { type: "string", example: "Trending genres fetched successfully" },
+					data: {
+						type: "array",
+						items: { $ref: "#/components/schemas/Genre" },
+					},
+				},
+			},
+			Notification: {
+				type: "object",
+				properties: {
+					_id: { type: "string" },
+					type: { type: "string", example: "review.like", enum: ["user.folow", "review.like", "review.reply", "comment.reply", "comment.like"] },
+					entityId: { type: "string", nullable: true },
+					latestSender: { $ref: "#/components/schemas/User" },
+					count: { type: "integer", example: 3 },
+					metadata: {
+						type: "object",
+						properties: {
+							bookTitle: { type: "string" },
+							bookCover: { type: "string", format: "uri" },
+							textSnippet: { type: "string" },
+						},
+						nullable: true,
+					},
+					createdAt: { type: "string", format: "date-time" },
+				},
+			},
+			NotificationsListSuccessResponse: {
+				type: "object",
+				properties: {
+					success: { type: "boolean", example: true },
+					message: { type: "string", example: "Notifications fetched successfully" },
+					data: {
+						type: "array",
+						items: { $ref: "#/components/schemas/Notification" },
+					},
+					meta: {
+						type: "object",
+						properties: {
+							totalCount: { type: "integer", example: 45 },
+							currentPage: { type: "integer", example: 1 },
+							totalPages: { type: "integer", example: 3 },
+							limit: { type: "integer", example: 20 },
+						},
+					},
+				},
+			},
 		},
 	},
 	paths: {
+		"/auth/check-email": {
+			post: {
+				tags: ["Auth"],
+				summary: "Check if email exists",
+				requestBody: {
+					required: true,
+					content: { "application/json": { schema: { type: "object", required: ["email"], properties: { email: { type: "string", format: "email", example: "test@example.com" } } } } },
+				},
+				responses: {
+					200: { description: "Email existence checked", content: { "application/json": { schema: { $ref: "#/components/schemas/ExistenceCheckResponse" } } } },
+					422: { description: "Validation error", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } },
+				},
+			},
+		},
+		"/auth/check-username": {
+			post: {
+				tags: ["Auth"],
+				summary: "Check if username exists",
+				requestBody: {
+					required: true,
+					content: { "application/json": { schema: { type: "object", required: ["username"], properties: { username: { type: "string", example: "johndoe", minLength: 4 } } } } },
+				},
+				responses: {
+					200: { description: "Username existence checked", content: { "application/json": { schema: { $ref: "#/components/schemas/ExistenceCheckResponse" } } } },
+					422: { description: "Validation error", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } },
+				},
+			},
+		},
 		"/auth/signup": {
 			post: {
 				tags: ["Auth"],
@@ -608,6 +726,44 @@ const swaggerSpec = {
 				},
 			},
 		},
+		"/books/genres/trending": {
+			get: {
+				tags: ["Books"],
+				summary: "Get trending genres",
+				security: [{ bearerAuth: [] }],
+				responses: {
+					200: {
+						description: "Trending genres fetched",
+						content: {
+							"application/json": {
+								schema: { $ref: "#/components/schemas/TrendingGenresSuccessResponse" },
+							},
+						},
+					},
+				},
+			},
+		},
+		"/books/genres/all": {
+			get: {
+				tags: ["Books"],
+				summary: "Get all genres with pagination",
+				security: [{ bearerAuth: [] }],
+				parameters: [
+					{ in: "query", name: "page", schema: { type: "number", minimum: 1 }, default: 1 },
+					{ in: "query", name: "limit", schema: { type: "number", minimum: 1, maximum: 100 }, default: 20 },
+				],
+				responses: {
+					200: {
+						description: "All genres fetched",
+						content: {
+							"application/json": {
+								schema: { $ref: "#/components/schemas/GenresSuccessResponse" },
+							},
+						},
+					},
+				},
+			},
+		},
 		"/books/{bookId}": {
 			get: {
 				tags: ["Books"],
@@ -629,6 +785,22 @@ const swaggerSpec = {
 				responses: {
 					200: { description: "Book reaction applied", content: { "application/json": { schema: { $ref: "#/components/schemas/ToggleReactionResponse" } } } },
 					404: { description: "Book or user not found", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } },
+				},
+			},
+		},
+		"/users/me/notifications": {
+			get: {
+				tags: ["Users"],
+				summary: "Fetch authenticated user notifications",
+				security: [{ bearerAuth: [] }],
+				parameters: [
+					{ in: "query", name: "category", schema: { type: "string", enum: ["all", "mentions"] }, default: "all", description: "Filter notifications by category" },
+					{ in: "query", name: "page", schema: { type: "number", minimum: 1 }, default: 1 },
+					{ in: "query", name: "limit", schema: { type: "number", minimum: 1, maximum: 100 }, default: 20 },
+				],
+				responses: {
+					200: { description: "Notifications fetched", content: { "application/json": { schema: { $ref: "#/components/schemas/NotificationsListSuccessResponse" } } } },
+					401: { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } },
 				},
 			},
 		},

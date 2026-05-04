@@ -1,7 +1,7 @@
 import { QueryFilter } from "mongoose";
 import { NotFoundException } from "../exceptions/exceptions";
 import { ErrorCode } from "../exceptions/root";
-import { Book, IBook } from "../models/book.model";
+import { Book, BookDocument, IBook } from "../models/book.model";
 import { getPaginationData } from "../utils/helpers/helper";
 import { PaginationQuery } from "../types/pagination.type";
 import { User } from "../models/user.model";
@@ -46,7 +46,7 @@ export class BookService {
 	}
 
 	static async getTrendingBooks() {
-		const trendingBooks = await Book.aggregate([
+		const trendingBooks: BookDocument[] = await Book.aggregate([
 			{ $match: { totalReviews: { $gt: 0 } } },
 			{
 				$addFields: {
@@ -66,7 +66,16 @@ export class BookService {
 			{ $project: { trendingScore: 0 } },
 		]);
 
-		return trendingBooks;
+		const books = trendingBooks.map((book) => ({
+			_id: book._id,
+			title: book.title,
+			coverImage: book.coverImage,
+			averageRating: book.averageRating,
+			genres: book.genres,
+			tags: book.tags,
+		}));
+
+		return books;
 	}
 
 	static async getBookById(bookId: string) {
@@ -98,5 +107,65 @@ export class BookService {
 		if (!user) throw new NotFoundException("User not found", ErrorCode.NOT_FOUND);
 
 		return user.savedBooks;
+	}
+
+	static async getAllGenres(page = 1, limit = 20) {
+		const skip = (page - 1) * limit;
+
+		const genres = await Book.aggregate([
+			{ $unwind: "$genres" },
+			{
+				$group: {
+					_id: "$genres",
+					count: { $sum: 1 },
+				},
+			},
+			{ $sort: { count: -1 } },
+			{
+				$facet: {
+					data: [{ $skip: skip }, { $limit: limit }],
+					meta: [{ $count: "total" }],
+				},
+			},
+		]);
+
+		const result = genres[0];
+
+		return {
+			genres: result.data.map((g: any) => ({
+				name: g._id,
+				count: g.count,
+			})),
+			meta: {
+				count: result.meta[0]?.total || 0,
+			},
+		};
+	}
+
+	static async getTrendingGenres(limit = 10) {
+		const trending = await Book.aggregate([
+			{ $unwind: "$genres" },
+			{
+				$group: {
+					_id: "$genres",
+					score: {
+						$sum: {
+							$add: [
+								{ $multiply: ["$averageRating", 0.7] },
+								{
+									$multiply: [{ $ln: { $add: ["$totalReviews", 1] } }, 0.3],
+								},
+							],
+						},
+					},
+				},
+			},
+			{ $sort: { score: -1 } },
+			{ $limit: limit },
+		]);
+
+		return trending.map((g: any) => ({
+			name: g._id,
+		}));
 	}
 }

@@ -61,6 +61,14 @@ export class NotificationService {
 
 			const notifyDoc = await Notification.findOne({ recipient: recipientId, sender: senderId, type }).sort({ createdAt: -1 });
 
+			const tokenEntries = recipient.fcmTokens ?? [];
+			const tokens = tokenEntries.map((t) => t.token).filter((t): t is string => Boolean(t));
+
+			if (tokens.length === 0) {
+				console.log("[NotificationService]: No valid FCM tokens for recipient.");
+				return;
+			}
+
 			const message = {
 				notification: {
 					title: "BookWorm",
@@ -72,7 +80,7 @@ export class NotificationService {
 					avatar: sender?.profileImage || DEFAULT_IMAGE,
 					bookCover: notifyDoc?.metadata?.bookCover || "",
 				},
-				tokens: recipient.fcmTokens,
+				tokens,
 			};
 
 			const response = await messaging.sendEachForMulticast(message);
@@ -83,7 +91,9 @@ export class NotificationService {
 			if (response.failureCount > 0) {
 				const failedTokens: string[] = [];
 				response.responses.forEach((resp, idx) => {
-					if (!resp.success && recipient.fcmTokens[idx]) failedTokens.push(recipient.fcmTokens[idx]);
+					if (!resp.success && tokenEntries[idx]) {
+						failedTokens.push(tokenEntries[idx].token);
+					}
 				});
 
 				await User.findByIdAndUpdate(recipientId, {
@@ -95,12 +105,12 @@ export class NotificationService {
 		}
 	}
 
-	static async getGroupedNotifications(userId: string, category: string) {
+	static async getGroupedNotifications(userId: string, category: string, page: number, limit: number) {
 		const match: any = { recipient: new Types.ObjectId(userId) };
 
 		if (category === "mentions") match.type = { $in: [NotificationType.reviewReply, NotificationType.commentReply] };
 
-		return await Notification.aggregate([
+		const notifications = await Notification.aggregate([
 			{ $match: match },
 			{ $sort: { createdAt: -1 } },
 			{
@@ -120,5 +130,19 @@ export class NotificationService {
 			{ $unwind: "$senderInfo" },
 			{ $sort: { createdAt: -1 } },
 		]);
+
+		const skip = (page - 1) * limit;
+		let paginatedNotifications = notifications.slice(skip, skip + limit);
+		const count = notifications.length;
+		const totalPages = Math.ceil(count / limit);
+
+		return {
+			data: paginatedNotifications,
+			meta: {
+				totalPages,
+				currentPage: page,
+				count,
+			},
+		};
 	}
 }
