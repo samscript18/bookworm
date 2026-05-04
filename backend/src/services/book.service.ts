@@ -25,8 +25,8 @@ export class BookService {
 			_query.$or = [{ title: { $regex: query.search, $options: "i" } }, { author: { $regex: query.search, $options: "i" } }];
 		}
 
-		if (query.genre) {
-			_query.genres = { $in: [query.genre] };
+		if (query.genre && query.genre.toLowerCase() !== "all") {
+			_query.genres = query.genre.toLowerCase();
 		}
 
 		const count = await Book.countDocuments(_query);

@@ -1,4 +1,5 @@
 import mongoose, { Schema, Document, HydratedDocument } from "mongoose";
+import { toLowercaseArray } from "../utils/helpers/helper";
 
 export interface IBook extends Document {
 	title: string;
@@ -25,8 +26,8 @@ const BookSchema: Schema = new Schema(
 		publisher: { type: String },
 		publishYear: { type: Number },
 		isbn: { type: String, unique: true, sparse: true },
-		genres: [{ type: String }],
-		tags: [{ type: String }],
+		genres: { type: [String], set: toLowercaseArray },
+		tags: { type: [String], set: toLowercaseArray },
 		averageRating: { type: Number, default: 0, min: 0, max: 5 },
 		totalReviews: { type: Number, default: 0 },
 	},

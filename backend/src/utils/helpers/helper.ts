@@ -3,7 +3,7 @@ import jwt, { JwtPayload } from "jsonwebtoken";
 import secrets from "../../constants/secrets.constant";
 import { UserDocument } from "../../models/user.model";
 import crypto from "crypto";
-import { PaginationQuery } from "../../types/pagination.type"; 
+import { PaginationQuery } from "../../types/pagination.type";
 
 export async function hashPassword(password: string): Promise<string> {
 	return bcrypt.hash(password, 12);
@@ -76,3 +76,8 @@ export function getPaginationData(query: PaginationQuery, count: number) {
 		totalPages,
 	};
 }
+export const toLowercaseArray = (arr: string[]) => {
+	if (!Array.isArray(arr)) return arr;
+
+	return [...new Set(arr.filter(Boolean).map((item) => item.toLowerCase().trim()))];
+};

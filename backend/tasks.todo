@@ -1,3 +1,2 @@
-"add endpoints to check for email and username existence in swagger doc"
-"Create dtos for each collections. Refactor everything sha basically";
+"Create dtos for interactinf with each collections. Refactor everything sha basically";
 "Improve delete comment functionality, e.g, If a comment has multiple nested replies (depth > 1)"
