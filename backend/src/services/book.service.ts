@@ -12,14 +12,8 @@ export class BookService {
 		return book;
 	}
 
-	static async getAllBooks(query: { page?: number; limit?: number; search?: string; genre?: string }) {
+	static async getAllBooks(query: { cursor?: string; limit: number; search?: string; genre?: string }) {
 		const _query: QueryFilter<IBook> = {};
-		const paginationQuery: PaginationQuery = {};
-
-		if (query.page && query.page) {
-			paginationQuery.page = query.page || 1;
-			paginationQuery.limit = query.limit || 30;
-		}
 
 		if (query.search) {
 			_query.$or = [{ title: { $regex: query.search, $options: "i" } }, { author: { $regex: query.search, $options: "i" } }];
@@ -29,19 +23,22 @@ export class BookService {
 			_query.genres = query.genre.toLowerCase();
 		}
 
-		const count = await Book.countDocuments(_query);
+		if (query.cursor) {
+			_query.createdAt = { $lt: new Date(query.cursor) };
+		}
 
-		const { limit, offset, totalPages } = getPaginationData(paginationQuery, count);
+		const books = await Book.find(_query)
+			.sort({ createdAt: -1 })
+			.limit(query.limit + 1)
+			.lean();
 
-		const result = await Book.find(_query).skip(offset).limit(limit).sort({ createdAt: -1 }).lean();
+		const nextCursor = books.length > 0 ? ((books[books.length - 1] as { createdAt?: Date })?.createdAt ?? null) : null;
+
+		console.log(nextCursor);
 
 		return {
-			books: result,
-			meta: {
-				totalPages,
-				currentPage: paginationQuery.page || 1,
-				count,
-			},
+			books,
+			nextCursor,
 		};
 	}
 

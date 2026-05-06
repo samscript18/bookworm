@@ -20,3 +20,8 @@ export type Book = {
 	averageRating: number;
 	totalReviews: number;
 } & BaseModelType;
+
+export type BookGenre = {
+	name: string;
+	count: number;
+};

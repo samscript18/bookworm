@@ -14,8 +14,8 @@ export const createBookSchema = z.object({
 });
 
 export const getBooksSchema = z.object({
-	page: z.number().min(1).optional(),
-	limit: z.number().min(1).optional(),
+	cursor: z.string().min(1).optional(),
+	limit: z.string().min(1).optional(),
 	search: z.string().optional(),
 	genre: z.string().optional(),
 });

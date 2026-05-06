@@ -47,10 +47,10 @@ export const getAllBooks = asyncHandler(async (req: Request, res: Response) => {
 	const parsed = getBooksSchema.safeParse(req.query);
 	if (!parsed.success) throw new UnprocessableEntity("Invalid query parameters", ErrorCode.UNPROCESSABLE_ENTITY, parsed.error);
 
-	const query = { page: parsed.data.page ?? 1, limit: parsed.data.limit ?? 30, search: parsed.data.search ?? "", genre: parsed.data.genre ?? "" };
+	const query = { cursor: (parsed.data.cursor as string) ?? null, limit: Number(parsed.data.limit) ?? 30, search: parsed.data.search ?? "", genre: parsed.data.genre ?? "" };
 
 	const result = await BookService.getAllBooks(query);
-	res.json({ success: true, message: "All books fetched successfully", data: result.books, meta: result.meta });
+	res.json({ success: true, message: "All books fetched successfully", data: result });
 });
 
 export const getBookById = asyncHandler(async (req: Request, res: Response) => {

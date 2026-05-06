@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, ScrollView, Image, ActivityIndicator, KeyboardAvoidingView, Platform, Alert } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, ScrollView, Image, ActivityIndicator, KeyboardAvoidingView, Platform, Alert, Keyboard } from "react-native";
 import { Link, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
@@ -115,6 +115,7 @@ const SignUp = () => {
 		setRegistrationData(getValues());
 
 		if (step < TOTAL_STEPS) {
+			Keyboard.dismiss();
 			setRegistrationStep(step + 1);
 			return;
 		}
@@ -513,7 +514,7 @@ const SignUp = () => {
 						className="w-[48%] items-center rounded-2xl p-4"
 						style={{ backgroundColor: theme.colors.primary }}
 						onPress={handleNext}
-						disabled={isSubmitting || isSigningUp || isUploadingImage || !!errors.email || !!errors.userName}
+						disabled={isSubmitting || isSigningUp || isUploadingImage || STEP_FIELDS[step].some((field) => !!errors[field as keyof typeof errors])}
 					>
 						{isSubmitting || isSigningUp || isUploadingImage ? (
 							<ActivityIndicator size={20} color={theme.colors.onPrimary} />

@@ -12,8 +12,8 @@ export type uploadBookDto = {
 };
 
 export type getBooksParams = {
-	page: number;
-	limit: number;
+	cursor?: string;
+	limit?: number;
 	search?: string;
 	genre?: string;
 };
