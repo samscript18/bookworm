@@ -5,11 +5,17 @@ import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { REVIEWS_DATA } from "@/data/data";
 import { useThemeStore } from "@/store/useThemeStore";
+import { useQuery } from "@tanstack/react-query";
+import { getProfile } from "@/lib/services/user.service";
 
 const Profile = () => {
 	const router = useRouter();
 	const { theme, isDark } = useThemeStore();
 	const [activeTab, setActiveTab] = useState<string>("Reviews");
+	const { isFetching: isFetchingProfile, data: profile } = useQuery({
+		queryKey: ["profile"],
+		queryFn: () => getProfile(),
+	});
 
 	return (
 		<SafeAreaView className="flex-1" style={{ backgroundColor: theme.colors.background }} edges={["top"]}>
@@ -27,19 +33,19 @@ const Profile = () => {
 
 			<ScrollView showsVerticalScrollIndicator={false}>
 				<View className="items-center pt-4 px-4">
-					<Image source={{ uri: "https://i.pravatar.cc/150?img=5" }} className="w-24 h-24 rounded-full mb-4" />
+					<Image source={{ uri: profile?.profileImage }} className="w-24 h-24 rounded-full mb-4" />
 					<Text className="text-2xl font-bold" style={{ color: theme.colors.textPrimary }}>
-						Sarah Mitchell
+						{profile?.firstName} {profile?.lastName}
 					</Text>
 					<Text className="text-center mt-1 mb-6 leading-6" style={{ color: theme.colors.textSecondary }}>
-						Book lover | Sci-fi enthusiast | Always searching for the next great read
+						{profile?.bio}
 					</Text>
 				</View>
 
 				<View className="flex-row justify-around items-center w-full h-24 pt-6 pb-6 px-4 mb-4" style={{ borderTopWidth: 1, borderTopColor: isDark ? theme.colors.accentSurface : "#F3F4F6" }}>
 					<View className="items-center pr-8" style={{ borderRightWidth: 1, borderRightColor: isDark ? theme.colors.accentSurface : "#F3F4F6" }}>
 						<Text className="text-xl font-bold" style={{ color: theme.colors.textPrimary }}>
-							127
+							{profile?.reviewsCount}
 						</Text>
 						<Text className="text-sm" style={{ color: theme.colors.textSecondary }}>
 							Reviews
@@ -47,7 +53,7 @@ const Profile = () => {
 					</View>
 					<View className="items-center pr-8" style={{ borderRightWidth: 1, borderRightColor: isDark ? theme.colors.accentSurface : "#F3F4F6" }}>
 						<Text className="text-xl font-bold" style={{ color: theme.colors.textPrimary }}>
-							1,248
+							{profile?.followersCount}
 						</Text>
 						<Text className="text-sm" style={{ color: theme.colors.textSecondary }}>
 							Followers
@@ -55,7 +61,7 @@ const Profile = () => {
 					</View>
 					<View className="items-center">
 						<Text className="text-xl font-bold" style={{ color: theme.colors.textPrimary }}>
-							342
+							{profile?.followingCount}
 						</Text>
 						<Text className="text-sm" style={{ color: theme.colors.textSecondary }}>
 							Following

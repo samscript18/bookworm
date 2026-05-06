@@ -6,10 +6,11 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Section, SettingRow } from "@/components/ui/settings";
 import { useThemeStore } from "@/store/useThemeStore";
 import { useAuthStore } from "@/store/useAuthStore";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { logout } from "@/lib/services/auth.service";
 import { STORAGE_KEYS } from "@/constants/storageKeys";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { getProfile } from "@/lib/services/user.service";
 
 const SettingsScreen = () => {
 	const router = useRouter();
@@ -27,6 +28,11 @@ const SettingsScreen = () => {
 		},
 	});
 
+	const { isFetching: isFetchingProfile, data: profile } = useQuery({
+		queryKey: ["profile"],
+		queryFn: () => getProfile(),
+	});
+
 	return (
 		<SafeAreaView className="flex-1" style={{ backgroundColor: theme.colors.background }} edges={["top"]}>
 			<View className="flex-row items-center px-4 py-3 border-b" style={{ borderBottomColor: isDark ? theme.colors.accentSurface : "#F3F4F6" }}>
@@ -40,13 +46,13 @@ const SettingsScreen = () => {
 
 			<ScrollView showsVerticalScrollIndicator={false} className="px-4">
 				<View className="flex-row items-center py-6 border-b mb-4" style={{ borderBottomColor: isDark ? theme.colors.accentSurface : "#F3F4F6" }}>
-					<Image source={{ uri: "https://i.pravatar.cc/150?img=5" }} className="w-16 h-16 rounded-full mr-4" />
+					<Image source={{ uri: profile?.profileImage }} className="w-16 h-16 rounded-full mr-4" />
 					<View>
 						<Text className="text-lg font-bold" style={{ color: theme.colors.textPrimary }}>
-							Sarah Johnson
+							{profile?.firstName} {profile?.lastName}
 						</Text>
 						<Text className="mb-1" style={{ color: theme.colors.textSecondary }}>
-							sarah.j@email.com
+							{profile?.email}
 						</Text>
 						<TouchableOpacity className="flex-row items-center">
 							<Text className="font-semibold mr-1" style={{ color: theme.colors.primary }}>
@@ -58,7 +64,7 @@ const SettingsScreen = () => {
 				</View>
 
 				<Section title="Account">
-					<SettingRow icon="mail-outline" title="Email Address" rightText="sarah.j@email.com" />
+					<SettingRow icon="mail-outline" title="Email Address" rightText={profile?.email} />
 					<SettingRow icon="lock-closed-outline" title="Password" rightText="••••••••" />
 					<SettingRow icon="shield-checkmark-outline" title="Privacy & Security" />
 				</Section>

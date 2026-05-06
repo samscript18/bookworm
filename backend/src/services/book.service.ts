@@ -34,8 +34,6 @@ export class BookService {
 
 		const nextCursor = books.length > 0 ? ((books[books.length - 1] as { createdAt?: Date })?.createdAt ?? null) : null;
 
-		console.log(nextCursor);
-
 		return {
 			books,
 			nextCursor,

@@ -36,7 +36,6 @@ export default function RootLayout() {
 				<Stack.Screen name="(tabs)" options={{ animation: "fade" }} />
 				<Stack.Screen name="book/[id]" options={{ animation: "fade" }} />
 				<Stack.Screen name="book/write-review" options={{ animation: "fade" }} />
-				<Stack.Screen name="category/[id]" options={{ animation: "fade" }} />
 				<Stack.Screen name="notifications" options={{ animation: "fade" }} />
 				<Stack.Screen name="settings" options={{ animation: "fade" }} />
 			</Stack>

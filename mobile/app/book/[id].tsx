@@ -4,10 +4,12 @@ import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { BookTabType } from "@/types/book/book";
-import { bookDescription, reviews } from "@/data/data";
-import ReviewCard from "@/components/ui/review-card";
 import { StarRow } from "@/components/ui/star-row";
 import { useThemeStore } from "@/store/useThemeStore";
+import { getBook } from "@/lib/services/book.service";
+import { useQuery } from "@tanstack/react-query";
+import { getBookReviews } from "@/lib/services/review.service";
+import BookReviewCard from "@/components/ui/book-review-card";
 
 const BookDetails = () => {
 	const router = useRouter();
@@ -15,17 +17,25 @@ const BookDetails = () => {
 	const { theme, isDark } = useThemeStore();
 	const [activeTab, setActiveTab] = useState<BookTabType>("Details");
 
+	const { isFetching: isFetchingBook, data: book } = useQuery({
+		queryKey: ["book", id],
+		queryFn: () => getBook(id),
+	});
+
+	const { isFetching: isFetchingReviews, data: reviews } = useQuery({
+		queryKey: ["book-reviews", id],
+		queryFn: () => getBookReviews(id),
+	});
+
 	const renderDetails = () => (
 		<>
 			<View className="px-5 mt-3">
 				<Text className="text-[18px] font-semibold mb-4" style={{ color: theme.colors.textPrimary }}>
 					About this book
 				</Text>
-				{bookDescription.map((paragraph) => (
-					<Text key={paragraph} className="text-sm leading-7 mb-3" style={{ color: isDark ? "#C8CCD6" : "#4B5563" }}>
-						{paragraph}
-					</Text>
-				))}
+				<Text className="text-sm leading-7 mb-3" style={{ color: isDark ? "#C8CCD6" : "#4B5563" }}>
+					{book?.description}
+				</Text>
 
 				<TouchableOpacity className="self-start mt-1 mb-5">
 					<Text className="text-[15px] font-semibold" style={{ color: theme.colors.primary }}>
@@ -39,7 +49,7 @@ const BookDetails = () => {
 							Pages:
 						</Text>
 						<Text className="text-sm font-semibold" style={{ color: theme.colors.textPrimary }}>
-							384
+							{book?.pages}
 						</Text>
 					</View>
 					<View className="w-[47%] flex-row items-center gap-x-2.5">
@@ -47,7 +57,7 @@ const BookDetails = () => {
 							Publisher:
 						</Text>
 						<Text className="text-sm font-semibold" style={{ color: theme.colors.textPrimary }}>
-							Penguin
+							{book?.publisher}
 						</Text>
 					</View>
 				</View>
@@ -58,7 +68,7 @@ const BookDetails = () => {
 							Published:
 						</Text>
 						<Text className="text-sm font-semibold" style={{ color: theme.colors.textPrimary }}>
-							2023
+							{book?.publishYear}
 						</Text>
 					</View>
 					<View className="w-[47%] flex-row items-center gap-x-2.5">
@@ -66,26 +76,26 @@ const BookDetails = () => {
 							Language:
 						</Text>
 						<Text className="text-sm font-semibold" style={{ color: theme.colors.textPrimary }}>
-							English
+							{"English"}
 						</Text>
 					</View>
 				</View>
 
-				<View className="flex-row justify-between mb-7">
-					<View className="w-[47%] flex-row items-center gap-x-2.5">
+				<View className="mb-7">
+					<View className="w-full flex-row items-center gap-x-2.5 mb-7">
 						<Text className="text-sm" style={{ color: isDark ? "#8C93A4" : "#9CA3AF" }}>
 							ISBN:
 						</Text>
 						<Text className="text-sm font-semibold" style={{ color: theme.colors.textPrimary }}>
-							978-1234567890
+							{book?.isbn}
 						</Text>
 					</View>
-					<View className="w-[47%] flex-row items-center gap-x-2.5">
+					<View className="w-full flex-row items-center gap-x-2.5">
 						<Text className="text-sm" style={{ color: isDark ? "#8C93A4" : "#9CA3AF" }}>
 							Genre:
 						</Text>
-						<Text className="text-sm font-semibold" style={{ color: theme.colors.textPrimary }}>
-							Fiction
+						<Text className="text-sm font-semibold capitalize" style={{ color: theme.colors.textPrimary }}>
+							{book?.genres.join(", ")}
 						</Text>
 					</View>
 				</View>
@@ -96,8 +106,8 @@ const BookDetails = () => {
 			</View>
 
 			<View className="px-4 pb-10">
-				{reviews.map((review) => (
-					<ReviewCard key={review.id} review={review} isDark={isDark} />
+				{reviews?.map((review) => (
+					<BookReviewCard key={review._id} {...review} />
 				))}
 			</View>
 		</>
@@ -105,8 +115,8 @@ const BookDetails = () => {
 
 	const renderReviews = () => (
 		<View className="px-4 pt-4 pb-10">
-			{reviews.map((review) => (
-				<ReviewCard key={review.id} review={review} isDark={isDark} />
+			{reviews?.map((review) => (
+				<BookReviewCard key={review._id} {...review} />
 			))}
 		</View>
 	);
@@ -135,22 +145,22 @@ const BookDetails = () => {
 				</View>
 
 				<View className="items-center px-4 pt-2">
-					<Image source={{ uri: "https://res.cloudinary.com/dynopc0cn/image/upload/v1776190236/onboarding-screen-1_cfohlh.png" }} className="w-[240px] h-[320px] rounded-[14px] bg-gray-200" />
+					<Image source={{ uri: book?.coverImage }} className="w-[240px] h-[320px] rounded-[14px] bg-gray-200" />
 					<Text className="text-xl font-bold mt-6 text-center" style={{ color: theme.colors.textPrimary }}>
-						The Midnight Library
+						{book?.title}
 					</Text>
 					<Text className="text-base mt-2 mb-4" style={{ color: theme.colors.textSecondary }}>
-						by Matt Haig
+						by {book?.author}
 					</Text>
 
 					<View className="items-center">
-						<StarRow rating={5} size={26} />
+						<StarRow rating={book?.averageRating!} size={26} />
 						<View className="flex-row center mt-4">
 							<Text className="text-base font-bold" style={{ color: theme.colors.textPrimary }}>
-								4.8
+								{book?.averageRating?.toFixed(1)}
 							</Text>
 							<Text className="text-base ml-2 mb-1" style={{ color: isDark ? "#8C93A4" : "#9CA3AF" }}>
-								(2,384 reviews)
+								({book?.totalReviews} reviews)
 							</Text>
 						</View>
 					</View>
@@ -167,9 +177,9 @@ const BookDetails = () => {
 									pathname: "/book/write-review",
 									params: {
 										bookId: id ?? "1",
-										bookTitle: "The Midnight Library",
-										author: "Matt Haig",
-										cover: "https://res.cloudinary.com/dynopc0cn/image/upload/v1776190236/onboarding-screen-1_cfohlh.png",
+										bookTitle: book?.title,
+										author: book?.author,
+										cover: book?.coverImage,
 									},
 								})
 							}

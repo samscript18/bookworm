@@ -4,8 +4,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useThemeStore } from "@/store/useThemeStore";
-
-type ReviewTag = "Emotional" | "Inspiring" | "Thriller" | "Page-turner" | "Thought-provoking";
+import { useQuery } from "@tanstack/react-query";
+import { getBook } from "@/lib/services/book.service";
 
 export default function WriteReview() {
 	const router = useRouter();
@@ -17,17 +17,22 @@ export default function WriteReview() {
 		cover?: string;
 	}>();
 
+	const { isFetching: isFetchingBook, data: book } = useQuery({
+		queryKey: ["book", params.bookId],
+		queryFn: () => getBook(params.bookId!),
+	});
+
 	const [rating, setRating] = useState<number>(4);
 	const [reviewText, setReviewText] = useState<string>("");
-	const [tags, setTags] = useState<ReviewTag[]>(["Emotional", "Inspiring"]);
+	const [tags, setTags] = useState<string[]>([]);
 
-	const suggestions: ReviewTag[] = ["Thriller", "Page-turner", "Thought-provoking"];
+	const suggestions: string[] = ["Thriller", "Page-turner", "Thought-provoking"];
 
 	const selectedTagSet = useMemo(() => new Set(tags), [tags]);
 
-	const bookTitle = typeof params.bookTitle === "string" ? params.bookTitle : "The Midnight Library";
-	const author = typeof params.author === "string" ? params.author : "Matt Haig";
-	const cover = typeof params.cover === "string" ? params.cover : "https://res.cloudinary.com/dynopc0cn/image/upload/v1776190236/onboarding-screen-1_cfohlh.png";
+	const bookTitle = typeof params.bookTitle === "string" ? params.bookTitle : book?.title;
+	const author = typeof params.author === "string" ? params.author : book?.author;
+	const cover = typeof params.cover === "string" ? params.cover : book?.coverImage;
 
 	return (
 		<SafeAreaView className="flex-1" style={{ backgroundColor: isDark ? "#0E0F13" : "#FFFFFF" }} edges={["top"]}>

@@ -40,7 +40,7 @@ const HomeFeed = () => {
 
 	const ListHeader = () => {
 		return (
-			<View>
+			<View className="mb-6">
 				<View className="flex-row justify-between items-center px-4 pt-2 mb-4">
 					<Text className="text-2xl font-bold" style={{ color: theme.colors.primary }}>
 						BookWorm
@@ -56,7 +56,7 @@ const HomeFeed = () => {
 				</View>
 
 				<View className="px-4 mb-6">
-					<View className="rounded-2xl" style={{ backgroundColor: theme.colors.surfaceMuted }}>
+					<View className="rounded-2xl">
 						<Text className="text-xl font-bold" style={{ color: theme.colors.textPrimary }}>
 							Welcome back{user?.firstName ? `, ${user.firstName}` : user?.userName}
 						</Text>
@@ -108,7 +108,7 @@ const HomeFeed = () => {
 					if (hasNextPage) fetchNextPage();
 				}}
 				onEndReachedThreshold={0.5}
-				ListHeaderComponent={ListHeader}
+				ListHeaderComponent={<ListHeader />}
 				ListFooterComponent={isFetchingNextPage ? <ActivityIndicator /> : <View className="h-4" />}
 			/>
 		</SafeAreaView>

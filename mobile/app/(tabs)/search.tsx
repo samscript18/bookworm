@@ -7,7 +7,6 @@ import { getAllBooks, getAllGenres } from "@/lib/services/book.service";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import BookCard from "@/components/ui/book-card";
 import { useDebounce } from "@/hooks/useDebounce";
-import { Link } from "expo-router";
 
 const Search = () => {
 	const { theme, isDark } = useThemeStore();
@@ -57,9 +56,7 @@ const Search = () => {
 							className="flex-1"
 							style={{ color: theme.colors.textPrimary }}
 							value={searchInput}
-							onChangeText={(val) => {
-								setSearchInput(val);
-							}}
+							onChangeText={setSearchInput}
 						/>
 					</View>
 				</View>
@@ -116,7 +113,7 @@ const Search = () => {
 					data={books}
 					keyExtractor={(item) => item._id}
 					renderItem={({ item }) => (
-						<View className="w-[48%]">
+						<View className={viewMode === "grid" ? `w-[48%]` : `w-full`}>
 							<BookCard book={item} viewMode={viewMode} />
 						</View>
 					)}
@@ -124,7 +121,7 @@ const Search = () => {
 						if (hasNextPage) fetchNextPage();
 					}}
 					onEndReachedThreshold={0.5}
-					ListHeaderComponent={ListHeader}
+					ListHeaderComponent={<ListHeader />}
 					ListFooterComponent={isFetchingNextPage ? <ActivityIndicator /> : <View className="h-4" />}
 					numColumns={viewMode === "grid" ? 2 : 1}
 					columnWrapperStyle={viewMode === "grid" ? { paddingHorizontal: 16, justifyContent: "space-between" } : undefined}

@@ -5,7 +5,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Book } from "@/types/book/book";
 import { useThemeStore } from "@/store/useThemeStore";
 
-const BookCard = ({ book, viewMode }: { book: Book, viewMode: "grid" | "list" }) => {
+const BookCard = ({ book, viewMode }: { book: Book; viewMode: "grid" | "list" }) => {
 	const { theme } = useThemeStore();
 
 	return (
@@ -25,13 +25,13 @@ const BookCard = ({ book, viewMode }: { book: Book, viewMode: "grid" | "list" })
 						<View className="flex-row items-center mt-1">
 							<Ionicons name="star" size={14} color={theme.colors.primary} />
 							<Text className="text-xs ml-1" style={{ color: theme.colors.textPrimary }}>
-								{book.averageRating}
+								{book.averageRating.toFixed(1)}
 							</Text>
 						</View>
 					</View>
 				</TouchableOpacity>
 			) : (
-				<TouchableOpacity className="w-full mb-4">
+				<TouchableOpacity className="w-full mb-4 px-4">
 					<View className="flex-row rounded-xl overflow-hidden" style={{ backgroundColor: theme.mode === "dark" ? "#141821" : "#FFFFFF" }}>
 						<Image source={{ uri: book.coverImage }} className="w-24 h-32 bg-gray-200" />
 						<View className="flex-1 px-3 py-2 justify-between">
@@ -46,7 +46,7 @@ const BookCard = ({ book, viewMode }: { book: Book, viewMode: "grid" | "list" })
 							<View className="flex-row items-center mt-2">
 								<Ionicons name="star" size={14} color={theme.colors.primary} />
 								<Text className="text-xs ml-1" style={{ color: theme.colors.textPrimary }}>
-									{book.averageRating}
+									{book.averageRating.toFixed(1)}
 								</Text>
 							</View>
 						</View>
