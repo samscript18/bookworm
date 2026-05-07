@@ -9,8 +9,10 @@ import { NotificationType } from "../models/notification.model";
 
 export class ReviewService {
 	static async getHomeFeed(data: { userId: string; cursor?: string; limit: number }) {
-		const user = await User.findById(data.userId).select("following");
+		const user = await User.findById(data.userId).select("following savedBooks");
 		if (!user) throw new NotFoundException("User not found", ErrorCode.NOT_FOUND);
+
+		const savedBookIds = user.savedBooks.map((id) => id.toString());
 
 		const friendsIds = user.following.map((f) => f.toString());
 
@@ -70,6 +72,17 @@ export class ReviewService {
 		});
 
 		pipeline.push({ $unwind: "$book" });
+
+		pipeline.push({
+			$addFields: {
+				isSaved: {
+					$in: [{ $toString: "$book._id" }, savedBookIds],
+				},
+				isLiked: {
+					$in: [new Types.ObjectId(data.userId), "$likes"],
+				},
+			},
+		});
 
 		const reviews = await Review.aggregate(pipeline);
 

@@ -14,3 +14,8 @@ export type GetHomeFeedParams = {
 	limit?: number;
 	cursor?: string;
 };
+
+export type AddReviewType = {
+	bookId: string;
+	data: AddReviewDto;
+};

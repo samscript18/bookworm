@@ -40,7 +40,7 @@ const BookCard = ({ book, viewMode }: { book: Book; viewMode: "grid" | "list" })
 									{book.title}
 								</Text>
 								<Text className="text-xs mt-1 capitalize" style={{ color: theme.colors.textSecondary }} numberOfLines={1}>
-									{book.tags?.[0]}
+									{book.author}
 								</Text>
 							</View>
 							<View className="flex-row items-center mt-2">

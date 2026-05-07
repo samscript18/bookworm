@@ -15,4 +15,6 @@ export type Review = {
 	tags: string[];
 	likes: string[];
 	commentsCount: number;
+	isSaved: boolean;
+	isLiked: boolean;
 } & BaseModelType;

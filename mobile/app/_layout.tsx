@@ -6,6 +6,7 @@ import "./global.css";
 import { useEffect, useRef } from "react";
 import { useFonts } from "expo-font";
 import NotificationInitializer from "@/components/notification-intializer";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
@@ -26,19 +27,21 @@ export default function RootLayout() {
 	if (!loaded) return null;
 
 	return (
-		<AppProvider>
-			<NotificationInitializer />
-			<StatusBar style="auto" />
-			<Stack screenOptions={{ headerShown: false }}>
-				<Stack.Screen name="index" />
-				<Stack.Screen name="onboarding" />
-				<Stack.Screen name="(auth)" options={{ animation: "fade" }} />
-				<Stack.Screen name="(tabs)" options={{ animation: "fade" }} />
-				<Stack.Screen name="book/[id]" options={{ animation: "fade" }} />
-				<Stack.Screen name="book/write-review" options={{ animation: "fade" }} />
-				<Stack.Screen name="notifications" options={{ animation: "fade" }} />
-				<Stack.Screen name="settings" options={{ animation: "fade" }} />
-			</Stack>
-		</AppProvider>
+		<GestureHandlerRootView style={{ flex: 1 }}>
+			<AppProvider>
+				<NotificationInitializer />
+				<StatusBar style="auto" />
+				<Stack screenOptions={{ headerShown: false }}>
+					<Stack.Screen name="index" />
+					<Stack.Screen name="onboarding" />
+					<Stack.Screen name="(auth)" options={{ animation: "fade" }} />
+					<Stack.Screen name="(tabs)" options={{ animation: "fade" }} />
+					<Stack.Screen name="book/[id]" options={{ animation: "fade" }} />
+					<Stack.Screen name="book/write-review" options={{ animation: "fade" }} />
+					<Stack.Screen name="notifications" options={{ animation: "fade" }} />
+					<Stack.Screen name="settings" options={{ animation: "fade" }} />
+				</Stack>
+			</AppProvider>
+		</GestureHandlerRootView>
 	);
 }

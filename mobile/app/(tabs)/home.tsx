@@ -4,19 +4,27 @@ import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Link, useRouter } from "expo-router";
 import { useThemeStore } from "@/store/useThemeStore";
-import { useQuery } from "@tanstack/react-query";
-import { getTrendingBooks } from "@/lib/services/book.service";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { getTrendingBooks, saveBook } from "@/lib/services/book.service";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { getHomeFeed } from "@/lib/services/review.service";
 import ReviewCard from "@/components/ui/review-card";
+import { TrendingBookSkeleton, ReviewSkeleton } from "@/components/ui/skeleton";
+import { ErrorBanner } from "@/components/ui/error-message";
 
 const HomeFeed = () => {
 	const { theme } = useThemeStore();
 	const { user } = useAuthStore();
 	const router = useRouter();
+	const queryClient = useQueryClient();
 
-	const { isFetching: isFetchingTrendingBooks, data: trendingBooks } = useQuery({
+	const {
+		isFetching: isFetchingTrendingBooks,
+		data: trendingBooks,
+		error: trendingBooksError,
+		refetch: refetchTrending,
+	} = useQuery({
 		queryKey: ["trending-books"],
 		queryFn: () => getTrendingBooks(),
 	});
@@ -33,6 +41,15 @@ const HomeFeed = () => {
 		getNextPageParam: (lastPage) => {
 			const lp = lastPage as { nextCursor?: string } | undefined;
 			return lp?.nextCursor ?? undefined;
+		},
+	});
+
+	const { mutateAsync: _saveBook, isPending: isSavingBook } = useMutation({
+		mutationKey: ["save-book"],
+		mutationFn: (bookId: string) => saveBook(bookId),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["home-feed"] });
+			queryClient.invalidateQueries({ queryKey: ["saved-books"] });
 		},
 	});
 
@@ -72,9 +89,11 @@ const HomeFeed = () => {
 					</Text>
 					<ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerClassName="pl-4 gap-3">
 						{isFetchingTrendingBooks ? (
-							<View className="min-w-full h-40 justify-center items-center">
-								<ActivityIndicator className="justify-center items-center" />
-							</View>
+							<>
+								{[1, 2, 3].map((i) => (
+									<TrendingBookSkeleton key={i} />
+								))}
+							</>
 						) : (
 							trendingBooks?.map((book) => (
 								<Link href={`/book/${book._id}`} key={book._id} asChild>
@@ -90,6 +109,7 @@ const HomeFeed = () => {
 						<View className="w-4" />
 					</ScrollView>
 				</View>
+				{trendingBooksError && <ErrorBanner message="Failed to load trending books" onDismiss={() => refetchTrending()} />}
 			</View>
 		);
 	};
@@ -99,17 +119,19 @@ const HomeFeed = () => {
 			<FlatList
 				data={reviews}
 				keyExtractor={(item) => item._id}
-				renderItem={({ item }) => (
-					<View className="px-4">
-						<ReviewCard {...item} />
-					</View>
-				)}
+				renderItem={({ item }) =>
+					item ? (
+						<View className="px-4">
+							<ReviewCard review={item} saveBook={_saveBook} isSavingBook={isSavingBook} />
+						</View>
+					) : null
+				}
 				onEndReached={() => {
 					if (hasNextPage) fetchNextPage();
 				}}
 				onEndReachedThreshold={0.5}
 				ListHeaderComponent={<ListHeader />}
-				ListFooterComponent={isFetchingNextPage ? <ActivityIndicator /> : <View className="h-4" />}
+				ListFooterComponent={isFetchingNextPage ? <ReviewSkeleton /> : <View className="h-4" />}
 			/>
 		</SafeAreaView>
 	);

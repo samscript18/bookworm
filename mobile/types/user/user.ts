@@ -1,6 +1,8 @@
 import z from "zod";
 import { BaseModelType } from "..";
 import { editProfileSchema } from "@/schemas/user.schema";
+import { Book } from "../book/book";
+import { Review } from "../review/review";
 
 export type User = {
 	email: string;
@@ -21,3 +23,4 @@ export type User = {
 
 export type EditProfileType = z.infer<typeof editProfileSchema>;
 
+export type ProfileItem = Book | Review;

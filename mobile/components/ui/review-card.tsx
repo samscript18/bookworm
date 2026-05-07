@@ -6,7 +6,7 @@ import { Review } from "@/types/review/review";
 import { Link } from "expo-router";
 import { getRelativeTime } from "@/lib/utils";
 
-const ReviewCard = (review: Review) => {
+const ReviewCard = ({ review, saveBook, isSavingBook }: { review: Review; saveBook: (bookId: string) => Promise<{ saved: boolean; savedBooksCount: number }>; isSavingBook: boolean }) => {
 	const { theme } = useThemeStore();
 
 	const handleShare = async (title: string, content: string) => {
@@ -60,7 +60,7 @@ const ReviewCard = (review: Review) => {
 			<View className="flex-row items-center justify-between">
 				<View className="flex-row items-center space-x-6">
 					<TouchableOpacity className="flex-row items-center">
-						<Ionicons name="heart-outline" size={20} color={theme.colors.textSecondary} />
+						<Ionicons name={review.isLiked ? "heart" : "heart-outline"} size={20} color={theme.colors.textSecondary} />
 						<Text className="ml-1" style={{ color: theme.colors.textSecondary }}>
 							{review.likes.length}
 						</Text>
@@ -75,8 +75,8 @@ const ReviewCard = (review: Review) => {
 						<Ionicons name="share-social-outline" size={20} color={theme.colors.textSecondary} />
 					</TouchableOpacity>
 				</View>
-				<TouchableOpacity>
-					<Ionicons name="bookmark-outline" size={20} color={theme.colors.textSecondary} />
+				<TouchableOpacity onPress={() => saveBook(review.book._id)} disabled={isSavingBook}>
+					<Ionicons name={review.isSaved ? "bookmark" : isSavingBook ? "bookmark-outline" : "bookmark-outline"} size={20} color={isSavingBook ? theme.colors.textMuted : review.isSaved ? theme.colors.primary : theme.colors.textSecondary} />
 				</TouchableOpacity>
 			</View>
 		</View>
