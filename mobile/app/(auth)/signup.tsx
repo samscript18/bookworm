@@ -132,7 +132,7 @@ const SignUp = () => {
 	const getErrorText = (message?: string) => {
 		if (!message) return null;
 		return (
-			<Text className="mt-1 text-sm" style={{ color: theme.colors.error }}>
+			<Text className="font-manrope mt-1 text-sm" style={{ color: theme.colors.error }}>
 				{message}
 			</Text>
 		);
@@ -157,7 +157,7 @@ const SignUp = () => {
 			case 1:
 				return (
 					<View className="mb-8">
-						<Text className="mb-4 text-base font-semibold" style={{ color: theme.colors.textPrimary }}>
+						<Text className="font-manrope mb-4 text-base font-semibold" style={{ color: theme.colors.textPrimary }}>
 							Email Address
 						</Text>
 						<Controller
@@ -202,7 +202,7 @@ const SignUp = () => {
 			case 2:
 				return (
 					<View className="mb-8">
-						<Text className="mb-3 text-base font-semibold" style={{ color: theme.colors.textPrimary }}>
+						<Text className="font-manrope mb-3 text-base font-semibold" style={{ color: theme.colors.textPrimary }}>
 							Password
 						</Text>
 						<Controller
@@ -233,7 +233,7 @@ const SignUp = () => {
 									</View>
 									{getErrorText(errors.password?.message)}
 									<View className="mt-6 rounded-2xl p-4 gap-3" style={{ backgroundColor: theme.colors.accentSurface }}>
-										<Text className="mb-3 text-sm font-medium" style={{ color: theme.colors.textPrimary }}>
+										<Text className="font-manrope mb-3 text-sm font-medium" style={{ color: theme.colors.textPrimary }}>
 											Password must contain:
 										</Text>
 										{passwordRequirements.map((item) => (
@@ -243,7 +243,7 @@ const SignUp = () => {
 													size={20}
 													color={item.met ? theme.colors.primary : theme.colors.textMuted}
 												/>
-												<Text className="ml-3 text-sm" style={{ color: item.met ? theme.colors.textPrimary : theme.colors.textSecondary }}>
+												<Text className="font-manrope ml-3 text-sm" style={{ color: item.met ? theme.colors.textPrimary : theme.colors.textSecondary }}>
 													{item.label}
 												</Text>
 											</View>
@@ -257,7 +257,7 @@ const SignUp = () => {
 			case 3:
 				return (
 					<View className="mb-8">
-						<Text className="mb-3 text-base font-semibold" style={{ color: theme.colors.textPrimary }}>
+						<Text className="font-manrope mb-3 text-base font-semibold" style={{ color: theme.colors.textPrimary }}>
 							Name
 						</Text>
 						<View className="flex-row justify-between">
@@ -309,7 +309,7 @@ const SignUp = () => {
 			case 4:
 				return (
 					<View className="mb-8">
-						<Text className="mb-3 text-base font-semibold" style={{ color: theme.colors.textPrimary }}>
+						<Text className="font-manrope mb-3 text-base font-semibold" style={{ color: theme.colors.textPrimary }}>
 							Username
 						</Text>
 						<Controller
@@ -349,7 +349,7 @@ const SignUp = () => {
 			case 5:
 				return (
 					<View className="mb-8">
-						<Text className="mb-3 text-base font-semibold" style={{ color: theme.colors.textPrimary }}>
+						<Text className="font-manrope mb-3 text-base font-semibold" style={{ color: theme.colors.textPrimary }}>
 							Bio
 						</Text>
 						<Controller
@@ -380,7 +380,7 @@ const SignUp = () => {
 			case 6:
 				return (
 					<View className="mb-8 items-center">
-						<Text className="mb-3 self-start text-base font-semibold" style={{ color: theme.colors.textPrimary }}>
+						<Text className="font-manrope mb-3 self-start text-base font-semibold" style={{ color: theme.colors.textPrimary }}>
 							Profile Image
 						</Text>
 						<Controller
@@ -397,12 +397,12 @@ const SignUp = () => {
 							)}
 						/>
 						{errors.profileImage && (
-							<Text className="mt-1 self-start text-sm" style={{ color: theme.colors.error }}>
+							<Text className="font-manrope mt-1 self-start text-sm" style={{ color: theme.colors.error }}>
 								{errors.profileImage.message as string}
 							</Text>
 						)}
 						<TouchableOpacity onPress={pickImage} className="mt-2">
-							<Text className="font-semibold text-base" style={{ color: theme.colors.primary }}>
+							<Text className="font-manrope font-semibold text-base" style={{ color: theme.colors.primary }}>
 								Upload Photo
 							</Text>
 						</TouchableOpacity>
@@ -482,13 +482,13 @@ const SignUp = () => {
 					<Ionicons name="chevron-back" size={28} color={theme.colors.textPrimary} />
 				</TouchableOpacity>
 
-				<Text className="text-3xl font-bold mb-2" style={{ color: theme.colors.textPrimary }}>
+				<Text className="font-manrope text-3xl font-bold mb-2" style={{ color: theme.colors.textPrimary }}>
 					Create Account
 				</Text>
-				<Text className="mb-8 text-base" style={{ color: theme.colors.textSecondary }}>
+				<Text className="font-manrope mb-8 text-base" style={{ color: theme.colors.textSecondary }}>
 					Join the reading community today
 				</Text>
-				<Text className="mb-6 font-semibold text-base" style={{ color: theme.colors.primary }}>
+				<Text className="font-manrope mb-6 font-semibold text-base" style={{ color: theme.colors.primary }}>
 					Step {step} of {TOTAL_STEPS}
 				</Text>
 
@@ -505,7 +505,7 @@ const SignUp = () => {
 							borderColor: step === 1 ? "transparent" : theme.colors.primary,
 						}}
 					>
-						<Text className="text-base font-semibold" style={{ color: step === 1 ? theme.colors.textSecondary : theme.colors.primary }}>
+						<Text className="font-manrope text-base font-semibold" style={{ color: step === 1 ? theme.colors.textSecondary : theme.colors.primary }}>
 							Previous
 						</Text>
 					</TouchableOpacity>
@@ -519,14 +519,14 @@ const SignUp = () => {
 						{isSubmitting || isSigningUp || isUploadingImage ? (
 							<ActivityIndicator size={20} color={theme.colors.onPrimary} />
 						) : (
-							<Text className="text-base font-semibold" style={{ color: theme.colors.onPrimary }}>
+							<Text className="font-manrope text-base font-semibold" style={{ color: theme.colors.onPrimary }}>
 								{step === TOTAL_STEPS ? "Sign Up" : "Next"}
 							</Text>
 						)}
 					</TouchableOpacity>
 				</View>
 
-				<Text className="my-12 text-base text-center" style={{ color: theme.colors.textSecondary }}>
+				<Text className="font-manrope my-12 text-base text-center" style={{ color: theme.colors.textSecondary }}>
 					Already have an account?{" "}
 					<Link href="/(auth)/login" className="font-bold" style={{ color: theme.colors.primary }}>
 						Login

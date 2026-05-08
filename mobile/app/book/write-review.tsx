@@ -9,6 +9,7 @@ import { getBook } from "@/lib/services/book.service";
 import ActionSheet, { ActionSheetRef } from "react-native-actions-sheet";
 import { addReview } from "@/lib/services/review.service";
 import { AddReviewType } from "@/types/review/review.dto";
+import { toast } from "@/lib/utils/toast";
 
 export default function WriteReview() {
 	const router = useRouter();
@@ -36,6 +37,7 @@ export default function WriteReview() {
 		mutationFn: ({ bookId, data }: AddReviewType) => addReview(bookId, data),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["home-feed"] });
+			toast.success("Review submitted successfully!");
 			router.replace("/(tabs)/home");
 		},
 	});
@@ -90,7 +92,7 @@ export default function WriteReview() {
 						<Ionicons name="arrow-back" size={24} color={theme.colors.textPrimary} />
 					</TouchableOpacity>
 
-					<Text className="text-xl font-bold" style={{ color: theme.colors.textPrimary }}>
+					<Text className="font-manrope text-xl font-bold" style={{ color: theme.colors.textPrimary }}>
 						Write Review
 					</Text>
 
@@ -102,7 +104,7 @@ export default function WriteReview() {
 						<Image source={{ uri: cover }} className="w-12 h-16 rounded-md mr-3 bg-gray-200" />
 
 						<View className="flex-1 gap-y-2">
-							<Text className="font-bold text-lg" style={{ color: theme.colors.textPrimary }} numberOfLines={1}>
+							<Text className="font-manrope font-bold text-lg" style={{ color: theme.colors.textPrimary }} numberOfLines={1}>
 								{bookTitle}
 							</Text>
 
@@ -117,7 +119,7 @@ export default function WriteReview() {
 					</View>
 
 					<View className="items-center mb-8">
-						<Text className="text-base font-semibold mb-3 self-start" style={{ color: theme.colors.textPrimary }}>
+						<Text className="font-manrope text-base font-semibold mb-3 self-start" style={{ color: theme.colors.textPrimary }}>
 							Your Rating
 						</Text>
 
@@ -131,7 +133,7 @@ export default function WriteReview() {
 					</View>
 
 					<View className="mb-8">
-						<Text className="text-base font-semibold mb-3" style={{ color: theme.colors.textPrimary }}>
+						<Text className="font-manrope text-base font-semibold mb-3" style={{ color: theme.colors.textPrimary }}>
 							Your Thoughts
 						</Text>
 
@@ -160,7 +162,7 @@ export default function WriteReview() {
 					</View>
 
 					<View className="mb-10">
-						<Text className="text-base font-semibold mb-3" style={{ color: theme.colors.textPrimary }}>
+						<Text className="font-manrope text-base font-semibold mb-3" style={{ color: theme.colors.textPrimary }}>
 							Add Tags (Optional)
 						</Text>
 
@@ -227,7 +229,7 @@ export default function WriteReview() {
 						style={{ backgroundColor: theme.colors.primary }}
 						onPress={() => _addReview({ bookId: params.bookId!, data: { rating, content: reviewText, tags } })}
 					>
-						{isAddingReview ? <ActivityIndicator size="small" color="#fff" /> : <Text className="text-white text-lg font-bold">Submit Review</Text>}
+						{isAddingReview ? <ActivityIndicator size="small" color="#fff" /> : <Text className="font-manrope text-white text-lg font-bold">Submit Review</Text>}
 					</TouchableOpacity>
 				</View>
 
@@ -247,7 +249,7 @@ export default function WriteReview() {
 				>
 					<View className="px-5 pt-3 pb-6">
 						<View className="mb-5">
-							<Text className="text-xl font-bold" style={{ color: theme.colors.textPrimary }}>
+							<Text className="font-manrope text-xl font-bold" style={{ color: theme.colors.textPrimary }}>
 								Create New Tag
 							</Text>
 
@@ -300,7 +302,7 @@ export default function WriteReview() {
 								elevation: 4,
 							}}
 						>
-							<Text className="text-white font-semibold text-base">Add Tag</Text>
+							<Text className="font-manrope text-white font-semibold text-base">Add Tag</Text>
 						</TouchableOpacity>
 					</View>
 				</ActionSheet>

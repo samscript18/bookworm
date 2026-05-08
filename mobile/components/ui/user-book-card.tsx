@@ -22,11 +22,11 @@ const UserBookCard = (book: Book) => {
 
 			<View className="flex-1 justify-between">
 				<View>
-					<Text className="font-bold text-base" style={{ color: theme.colors.textPrimary }} numberOfLines={1}>
+					<Text className="font-manrope font-bold text-base" style={{ color: theme.colors.textPrimary }} numberOfLines={1}>
 						{book.title}
 					</Text>
 
-					<Text className="text-sm mt-1 mb-6" style={{ color: theme.colors.textSecondary }} numberOfLines={1}>
+					<Text className="font-manrope text-sm mt-1 mb-6" style={{ color: theme.colors.textSecondary }} numberOfLines={1}>
 						{book.author}
 					</Text>
 

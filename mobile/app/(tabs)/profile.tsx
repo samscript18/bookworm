@@ -1,11 +1,11 @@
 import React, { useState, useMemo } from "react";
-import { View, Text, Image, TouchableOpacity, FlatList } from "react-native";
+import { View, Text, Image, TouchableOpacity, FlatList, ActivityIndicator } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useThemeStore } from "@/store/useThemeStore";
-import { useQuery } from "@tanstack/react-query";
-import { getProfile } from "@/lib/services/user.service";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { getProfile, reactToUser } from "@/lib/services/user.service";
 import { ProfileSkeleton } from "@/components/ui/skeleton";
 import { ErrorMessage } from "@/components/ui/error-message";
 import { getSavedBooks } from "@/lib/services/book.service";
@@ -15,11 +15,20 @@ import UserReviewCard from "@/components/ui/user-review-card";
 import { ProfileItem } from "@/types/user/user";
 import { Review } from "@/types/review/review";
 import { Book } from "@/types/book/book";
+import { useAuthStore } from "@/store/useAuthStore";
 
 export default function Profile() {
 	const router = useRouter();
 	const { theme, isDark } = useThemeStore();
 	const [activeTab, setActiveTab] = useState<"Reviews" | "Favorites">("Reviews");
+	const { user } = useAuthStore();
+	const queryClient = useQueryClient();
+
+	const params = useLocalSearchParams<{
+		userId?: string;
+	}>();
+
+	const userId = params.userId && params.userId;
 
 	const {
 		data: profile,
@@ -27,9 +36,11 @@ export default function Profile() {
 		error: profileError,
 		refetch: refetchProfile,
 	} = useQuery({
-		queryKey: ["profile"],
-		queryFn: getProfile,
+		queryKey: ["profile", userId],
+		queryFn: () => getProfile(userId),
 	});
+
+	const profileId = profile?._id as string;
 
 	const {
 		data: userReviews,
@@ -37,9 +48,9 @@ export default function Profile() {
 		error: reviewsError,
 		refetch: refetchReviews,
 	} = useQuery({
-		queryKey: ["user-reviews", profile?._id],
-		queryFn: () => getUserReviews(profile!._id),
-		enabled: !!profile?._id,
+		queryKey: ["user-reviews", profileId],
+		queryFn: () => getUserReviews(profileId),
+		enabled: isProfileLoading === false && profileId !== undefined,
 	});
 
 	const {
@@ -48,8 +59,20 @@ export default function Profile() {
 		error: savedError,
 		refetch: refetchSaved,
 	} = useQuery({
-		queryKey: ["saved-books"],
-		queryFn: getSavedBooks,
+		queryKey: ["saved-books", userId],
+		queryFn: () => getSavedBooks(userId),
+	});
+
+	const {
+		mutateAsync: _reactToUser,
+		isPending: isReacting,
+		data: userReaction,
+	} = useMutation({
+		mutationKey: ["react-to-user", profileId],
+		mutationFn: reactToUser,
+		onSuccess: () => { 
+			queryClient.invalidateQueries({ queryKey: ["profile", userId] });
+		}
 	});
 
 	const isLoading = activeTab === "Reviews" ? isReviewsLoading : isSavedLoading;
@@ -70,12 +93,12 @@ export default function Profile() {
 
 	const ListHeader = () => (
 		<>
-			<View className="flex-row justify-between items-center px-4 py-3">
+			<View className="flex-row justify-between items-center px-2 py-3">
 				<TouchableOpacity onPress={() => router.back()}>
 					<Ionicons name="arrow-back" size={24} color={theme.colors.textPrimary} />
 				</TouchableOpacity>
 
-				<Text className="text-lg font-bold" style={{ color: theme.colors.textPrimary }}>
+				<Text className="font-manrope text-lg font-bold" style={{ color: theme.colors.textPrimary }}>
 					Profile
 				</Text>
 
@@ -86,41 +109,55 @@ export default function Profile() {
 
 			{profileError ? (
 				<ErrorMessage message="Failed to load profile" onRetry={refetchProfile} />
-			) : isProfileLoading ? (
+			) : isProfileLoading || !profile ? (
 				<ProfileSkeleton />
 			) : (
-				<View className="items-center pt-4 px-4">
-					<Image source={{ uri: profile?.profileImage }} className="w-24 h-24 rounded-full mb-4" />
+				<>
+					<View className="items-center pt-4 px-4">
+						<Image source={{ uri: profile.profileImage }} className="w-24 h-24 rounded-full mb-4" />
 
-					<Text className="text-2xl font-bold" style={{ color: theme.colors.textPrimary }}>
-						{profile?.firstName} {profile?.lastName}
-					</Text>
+						<Text className="font-manrope text-2xl font-bold" style={{ color: theme.colors.textPrimary }}>
+							{profile.firstName} {profile.lastName}
+						</Text>
 
-					<Text className="text-center mt-1 mb-3" style={{ color: theme.colors.textSecondary }}>
-						{profile?.bio}
-					</Text>
-				</View>
+						<Text className="font-manrope text-center mt-1 mb-3" style={{ color: theme.colors.textSecondary }}>
+							{profile.bio}
+						</Text>
+					</View>
+
+					<View className="flex-row justify-around py-2">
+						{[
+							{ label: "Reviews", value: profile.reviewsCount },
+							{ label: "Followers", value: profile.followersCount },
+							{ label: "Following", value: profile.followingCount },
+						].map((item) => (
+							<View key={item.label} className="items-center">
+								<Text className="font-manrope text-xl font-bold" style={{ color: theme.colors.textPrimary }}>
+									{item.value ?? 0}
+								</Text>
+								<Text style={{ color: theme.colors.textSecondary }}>{item.label}</Text>
+							</View>
+						))}
+					</View>
+				</>
 			)}
 
-			<View className="flex-row justify-around py-2">
-				{[
-					{ label: "Reviews", value: profile?.reviewsCount },
-					{ label: "Followers", value: profile?.followersCount },
-					{ label: "Following", value: profile?.followingCount },
-				].map((item) => (
-					<View key={item.label} className="items-center">
-						<Text className="text-xl font-bold" style={{ color: theme.colors.textPrimary }}>
-							{item.value ?? 0}
+			{profileId !== user?._id && (
+				<TouchableOpacity onPress={async () => await _reactToUser({ userId: profileId })} className="py-3 rounded-2xl items-center mt-8 mb-2" style={{ backgroundColor: theme.colors.primary }} disabled={isReacting}>
+					{isReacting ? (
+						<ActivityIndicator size={20} color={theme.colors.onPrimary} />
+					) : (
+						<Text className="font-manrope text-lg font-bold" style={{ color: theme.colors.onPrimary }}>
+							{userReaction?.isFollowing || profile?.isFollowing ? "Unfollow" : "Follow"}
 						</Text>
-						<Text style={{ color: theme.colors.textSecondary }}>{item.label}</Text>
-					</View>
-				))}
-			</View>
+					)}
+				</TouchableOpacity>
+			)}
 
 			<View className="flex-row justify-around w-full mt-6 py-2">
 				{["Reviews", "Favorites"].map((tab) => (
 					<TouchableOpacity key={tab} onPress={() => setActiveTab(tab as any)} className="pb-3 px-4">
-						<Text className="font-semibold text-base" style={{ color: activeTab === tab ? theme.colors.primary : theme.colors.textSecondary }}>
+						<Text className="font-manrope font-semibold text-base" style={{ color: activeTab === tab ? theme.colors.primary : theme.colors.textSecondary }}>
 							{tab}
 						</Text>
 						{activeTab === tab && <View className="h-[3px] rounded-t-full mt-1" style={{ backgroundColor: theme.colors.primary }} />}

@@ -1,11 +1,11 @@
 import React from "react";
-import { View, Text, ScrollView, Image, TouchableOpacity, FlatList, ActivityIndicator } from "react-native";
+import { View, Text, ScrollView, Image, TouchableOpacity, FlatList } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Link, useRouter } from "expo-router";
 import { useThemeStore } from "@/store/useThemeStore";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { getTrendingBooks, saveBook } from "@/lib/services/book.service";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { getTrendingBooks } from "@/lib/services/book.service";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { getHomeFeed } from "@/lib/services/review.service";
@@ -29,7 +29,7 @@ const HomeFeed = () => {
 		queryFn: () => getTrendingBooks(),
 	});
 
-	const { data, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery({
+	const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isRefetching } = useInfiniteQuery({
 		queryKey: ["home-feed"],
 		initialPageParam: undefined as string | undefined,
 		queryFn: ({ pageParam }) =>
@@ -44,22 +44,13 @@ const HomeFeed = () => {
 		},
 	});
 
-	const { mutateAsync: _saveBook, isPending: isSavingBook } = useMutation({
-		mutationKey: ["save-book"],
-		mutationFn: (bookId: string) => saveBook(bookId),
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ["home-feed"] });
-			queryClient.invalidateQueries({ queryKey: ["saved-books"] });
-		},
-	});
-
 	const reviews = data?.pages.flatMap((page) => page.reviews) ?? [];
 
 	const ListHeader = () => {
 		return (
 			<View className="mb-6">
 				<View className="flex-row justify-between items-center px-4 pt-2 mb-4">
-					<Text className="text-2xl font-bold" style={{ color: theme.colors.primary }}>
+					<Text className="text-4xl font-bold font-caveat" style={{ color: theme.colors.primary }}>
 						BookWorm
 					</Text>
 					<View className="flex-row justify-center items-center gap-x-8">
@@ -74,17 +65,17 @@ const HomeFeed = () => {
 
 				<View className="px-4 mb-6">
 					<View className="rounded-2xl">
-						<Text className="text-xl font-bold" style={{ color: theme.colors.textPrimary }}>
+						<Text className="text-xl font-bold font-manrope" style={{ color: theme.colors.textPrimary }}>
 							Welcome back{user?.firstName ? `, ${user.firstName}` : user?.userName}
 						</Text>
-						<Text className="text-sm my-4" style={{ color: theme.colors.textSecondary }}>
+						<Text className="font-manrope text-sm my-4" style={{ color: theme.colors.textSecondary }}>
 							Discover what the community is reading today.
 						</Text>
 					</View>
 				</View>
 
 				<View className="mb-6">
-					<Text className="text-lg font-semibold px-4 mb-4" style={{ color: theme.colors.textPrimary }}>
+					<Text className="font-manrope text-lg font-semibold px-4 mb-4" style={{ color: theme.colors.textPrimary }}>
 						Trending Now
 					</Text>
 					<ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerClassName="pl-4 gap-3">
@@ -99,7 +90,7 @@ const HomeFeed = () => {
 								<Link href={`/book/${book._id}`} key={book._id} asChild>
 									<TouchableOpacity className="w-[118px]">
 										<Image source={{ uri: book.coverImage }} className="w-[118px] h-[180px] rounded-lg mb-2" style={{ backgroundColor: theme.colors.surfaceMuted }} />
-										<Text className="text-[13px]" style={{ color: theme.colors.textPrimary }} numberOfLines={2}>
+										<Text className="font-manrope text-[13px]" style={{ color: theme.colors.textPrimary }} numberOfLines={2}>
 											{book.title}
 										</Text>
 									</TouchableOpacity>
@@ -122,7 +113,7 @@ const HomeFeed = () => {
 				renderItem={({ item }) =>
 					item ? (
 						<View className="px-4">
-							<ReviewCard review={item} saveBook={_saveBook} isSavingBook={isSavingBook} />
+							<ReviewCard review={item} queryClient={queryClient} isRefetching={isRefetching} />
 						</View>
 					) : null
 				}

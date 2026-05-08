@@ -64,10 +64,10 @@ const OtpVerification = () => {
 					</View>
 				</View>
 
-				<Text className="text-3xl font-bold text-center mb-4" style={{ color: theme.colors.textPrimary }}>
+				<Text className="font-manrope text-3xl font-bold text-center mb-4" style={{ color: theme.colors.textPrimary }}>
 					OTP Verification
 				</Text>
-				<Text className="text-base text-center px-4 mb-8 leading-6" style={{ color: theme.colors.textSecondary }}>
+				<Text className="font-manrope text-base text-center px-4 mb-8 leading-6" style={{ color: theme.colors.textSecondary }}>
 					Enter the 6-digit code sent to your email to continue resetting your password.
 				</Text>
 
@@ -112,23 +112,23 @@ const OtpVerification = () => {
 					style={{ backgroundColor: isCodeComplete ? theme.colors.primary : theme.colors.buttonDisabled }}
 					disabled={!isCodeComplete}
 				>
-					<Text className="text-base font-bold" style={{ color: theme.colors.onPrimary }}>
+					<Text className="font-manrope text-base font-bold" style={{ color: theme.colors.onPrimary }}>
 						Verify Code
 					</Text>
 				</TouchableOpacity>
 
 				<View className="items-center mt-2">
-					<Text className="text-base" style={{ color: theme.colors.textSecondary }}>
+					<Text className="font-manrope text-base" style={{ color: theme.colors.textSecondary }}>
 						Did not get the code?
 					</Text>
 					<TouchableOpacity className="mt-6">
-						<Text className="text-base font-semibold" style={{ color: theme.colors.primary }}>
+						<Text className="font-manrope text-base font-semibold" style={{ color: theme.colors.primary }}>
 							Resend in 00:30
 						</Text>
 					</TouchableOpacity>
 				</View>
 
-				<Text className="text-center text-base mt-8" style={{ color: theme.colors.textSecondary }}>
+				<Text className="font-manrope text-center text-base mt-8" style={{ color: theme.colors.textSecondary }}>
 					Wrong email?{" "}
 					<Link href="/(auth)/forgot-password" className="font-bold" style={{ color: theme.colors.primary }}>
 						Change it

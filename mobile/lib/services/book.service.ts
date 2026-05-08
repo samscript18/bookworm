@@ -42,9 +42,9 @@ export const getTrendingBooks = async () => {
 	}
 };
 
-export const getSavedBooks = async () => {
+export const getSavedBooks = async (userId?: string) => {
 	try {
-		const response = await authApi.get<ApiResponse<Book[]>>("/books/saved");
+		const response = await authApi.get<ApiResponse<Book[]>>("/books/saved", userId ? { params: { userId } } : {});
 
 		return response.data.data;
 	} catch (error) {

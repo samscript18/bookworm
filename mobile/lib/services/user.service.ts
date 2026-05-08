@@ -26,9 +26,9 @@ export const removeFcmToken = async (data: fcmTokenDto) => {
 	}
 };
 
-export const getProfile = async () => {
+export const getProfile = async (userId?: string) => {
 	try {
-		const response = await authApi.get<ApiResponse<User>>("/users/me");
+		const response = await authApi.get<ApiResponse<User>>("/users/me", userId ? { params: { userId } } : {});
 
 		return response.data.data;
 	} catch (error) {

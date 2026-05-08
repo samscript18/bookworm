@@ -4,34 +4,29 @@ import { Link, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Controller, useForm } from "react-hook-form";
-import { ResetPasswordType } from "@/types/auth/auth.form";
-import { resetPasswordSchema } from "@/schemas/auth.schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAuthStore } from "@/store/useAuthStore";
-import { resetPassword } from "@/lib/services/auth.service";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "@/lib/utils/toast";
 import { useThemeStore } from "@/store/useThemeStore";
+import { changePassword } from "@/lib/services/user.service";
+import { ChangePasswordType } from "@/types/user/user";
+import { changePasswordSchema } from "@/schemas/user.schema";
 
 const ResetPassword = () => {
 	const router = useRouter();
 	const { theme } = useThemeStore();
 	const [showPassword, setShowPassword] = useState<boolean>(false);
-	const [showConfirm, setShowConfirm] = useState<boolean>(false);
-	const { forgotPasswordToken, setPasswordResetStep } = useAuthStore();
-
-	useEffect(() => {
-		setPasswordResetStep(3);
-	}, [setPasswordResetStep]);
+	const [showNewPassword, setShowNewPassword] = useState<boolean>(false);
 
 	const {
 		handleSubmit,
 		formState: { errors, isSubmitting },
 		control,
 		watch,
-	} = useForm<ResetPasswordType>({ resolver: zodResolver(resetPasswordSchema) });
+	} = useForm<ChangePasswordType>({ resolver: zodResolver(changePasswordSchema) });
 
-	const passwordValue = watch("password") || "";
+	const passwordValue = watch("newPassword") || "";
 	const passwordRequirements = [
 		{ label: "At least 8 characters", met: passwordValue.length >= 8 },
 		{ label: "One uppercase letter", met: /[A-Z]/.test(passwordValue) },
@@ -40,19 +35,20 @@ const ResetPassword = () => {
 		{ label: "One special character", met: /[^a-zA-Z0-9]/.test(passwordValue) },
 	];
 
-	const { mutateAsync: _resetPassword, isPending: isResetPasswordPending } = useMutation({
-		mutationKey: ["auth", "reset-password"],
-		mutationFn: resetPassword,
+	const { mutateAsync: _changePassword, isPending: isChangePasswordPending } = useMutation({
+		mutationKey: ["change-password"],
+		mutationFn: changePassword,
+		onSuccess: () => {
+			toast.success("Password changed successfully");
+			router.push("/settings");
+		},
 	});
 
-	const onSubmit = async (data: ResetPasswordType) => {
+	const onSubmit = async (data: ChangePasswordType) => {
 		try {
-			await _resetPassword({ password: data.password, token: forgotPasswordToken });
-			toast.success("Password reset successfully");
-			setPasswordResetStep(0);
-			router.push("/(auth)/login");
+			await _changePassword({ currentPassword: data.currentPassword, newPassword: data.newPassword });
 		} catch (error) {
-			console.error("Failed to reset password", error);
+			console.error("Failed to change password", error);
 		}
 	};
 
@@ -62,7 +58,6 @@ const ResetPassword = () => {
 				<ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
 					<TouchableOpacity
 						onPress={() => {
-							setPasswordResetStep(2);
 							router.back();
 						}}
 						className="mb-4"
@@ -86,11 +81,11 @@ const ResetPassword = () => {
 					</Text>
 
 					<Text className="font-manrope text-base font-semibold mb-2" style={{ color: theme.colors.textPrimary }}>
-						New Password
+						Current Password
 					</Text>
 					<Controller
 						control={control}
-						name="password"
+						name="currentPassword"
 						render={({ field: { onChange, value } }) => (
 							<View>
 								<View
@@ -98,11 +93,11 @@ const ResetPassword = () => {
 									style={{
 										backgroundColor: theme.colors.surfaceMuted,
 										borderWidth: 1,
-										borderColor: errors.password ? theme.colors.error : theme.colors.primary,
+										borderColor: errors.currentPassword ? theme.colors.error : theme.colors.primary,
 									}}
 								>
 									<TextInput
-										placeholder="Password"
+										placeholder="Current Password"
 										placeholderTextColor={theme.colors.textMuted}
 										secureTextEntry={!showPassword}
 										className="flex-1 text-base"
@@ -112,9 +107,9 @@ const ResetPassword = () => {
 									/>
 									<Ionicons name={showPassword ? "eye-outline" : "eye-off-outline"} size={20} color={theme.colors.textSecondary} onPress={() => setShowPassword(!showPassword)} />
 								</View>
-								{errors.password && (
+								{errors.currentPassword && (
 									<Text className="font-manrope mt-1 text-sm" style={{ color: theme.colors.error }}>
-										{errors.password.message}
+										{errors.currentPassword.message}
 									</Text>
 								)}
 							</View>
@@ -122,11 +117,11 @@ const ResetPassword = () => {
 					/>
 
 					<Text className="font-manrope text-base font-semibold mt-4 mb-2" style={{ color: theme.colors.textPrimary }}>
-						Confirm Password
+						New Password
 					</Text>
 					<Controller
 						control={control}
-						name="confirmPassword"
+						name="newPassword"
 						render={({ field: { onChange, value } }) => (
 							<View>
 								<View
@@ -134,29 +129,34 @@ const ResetPassword = () => {
 									style={{
 										backgroundColor: theme.colors.surfaceMuted,
 										borderWidth: 1,
-										borderColor: errors.confirmPassword ? theme.colors.error : theme.colors.primary,
+										borderColor: errors.newPassword ? theme.colors.error : theme.colors.primary,
 									}}
 								>
 									<TextInput
-										placeholder="Confirm Password"
+										placeholder="New Password"
 										placeholderTextColor={theme.colors.textMuted}
-										secureTextEntry={!showConfirm}
+										secureTextEntry={!showNewPassword}
 										className="flex-1 text-base"
 										style={{ color: theme.colors.textPrimary }}
 										value={value}
 										onChangeText={onChange}
 									/>
-									<Ionicons name={showConfirm ? "eye-outline" : "eye-off-outline"} size={20} color={theme.colors.textSecondary} onPress={() => setShowConfirm(!showConfirm)} />
+									<Ionicons
+										name={showNewPassword ? "eye-outline" : "eye-off-outline"}
+										size={20}
+										color={theme.colors.textSecondary}
+										onPress={() => setShowNewPassword(!showNewPassword)}
+									/>
 								</View>
 
-								{value && value !== watch("password") ? (
+								{value && value !== watch("newPassword") ? (
 									<Text className="font-manrope mt-1 text-sm" style={{ color: theme.colors.error }}>
-										Passwords do not match
+										Passwords should not match
 									</Text>
 								) : (
-									errors.confirmPassword && (
+									errors.newPassword && (
 										<Text className="font-manrope mt-1 text-sm" style={{ color: theme.colors.error }}>
-											{errors.confirmPassword.message}
+											{errors.newPassword.message}
 										</Text>
 									)
 								)}
@@ -182,22 +182,15 @@ const ResetPassword = () => {
 						)}
 					/>
 
-					<TouchableOpacity onPress={handleSubmit(onSubmit)} className="py-4 rounded-2xl items-center" style={{ backgroundColor: theme.colors.primary }} disabled={isSubmitting}>
+					<TouchableOpacity onPress={handleSubmit(onSubmit)} className="py-4 rounded-2xl items-center mb-8" style={{ backgroundColor: theme.colors.primary }} disabled={isSubmitting}>
 						{isSubmitting ? (
 							<ActivityIndicator size={20} color={theme.colors.onPrimary} />
 						) : (
 							<Text className="font-manrope text-lg font-bold" style={{ color: theme.colors.onPrimary }}>
-								Reset Password
+								Change Password
 							</Text>
 						)}
 					</TouchableOpacity>
-
-					<Text className="font-manrope text-center text-base my-8" style={{ color: theme.colors.textSecondary }}>
-						Remember your password?{" "}
-						<Link href="/(auth)/login" className="font-bold" style={{ color: theme.colors.primary }}>
-							Back to Login
-						</Link>
-					</Text>
 				</ScrollView>
 			</KeyboardAvoidingView>
 		</SafeAreaView>

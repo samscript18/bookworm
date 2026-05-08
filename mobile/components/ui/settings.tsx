@@ -16,7 +16,7 @@ const Section = ({ title, children }: { title: string; children: React.ReactNode
 	const { theme } = useThemeStore();
 	return (
 		<View className="mb-6">
-			<Text className="text-xs font-bold mb-2 uppercase" style={{ color: theme.colors.textSecondary }}>
+			<Text className="font-manrope text-xs font-bold mb-2 uppercase" style={{ color: theme.colors.textSecondary }}>
 				{title}
 			</Text>
 			<View style={{ backgroundColor: theme.colors.background }}>{children}</View>
@@ -32,7 +32,7 @@ const SettingRow = ({ icon, title, type = "link", value, onValueChange, rightTex
 	return (
 		<Container className="flex-row items-center py-6 border-b" style={{ borderBottomColor: isDark ? theme.colors.accentSurface : "#F3F4F6" }} onPress={!isSwitch ? onPress : undefined} activeOpacity={0.7}>
 			<Ionicons name={icon} size={22} color={theme.colors.textSecondary} className="mr-3" />
-			<Text className="flex-1 text-base" style={{ color: theme.colors.textPrimary }}>
+			<Text className="font-manrope flex-1 text-base" style={{ color: theme.colors.textPrimary }}>
 				{title}
 			</Text>
 

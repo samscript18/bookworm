@@ -28,7 +28,7 @@ const Notifications = () => {
 				<TouchableOpacity onPress={() => router.back()}>
 					<Ionicons name="arrow-back" size={24} color={theme.colors.textPrimary} />
 				</TouchableOpacity>
-				<Text className="text-xl font-bold" style={{ color: theme.colors.textPrimary }}>
+				<Text className="font-manrope text-xl font-bold" style={{ color: theme.colors.textPrimary }}>
 					Notifications
 				</Text>
 				<TouchableOpacity>
@@ -58,29 +58,29 @@ const Notifications = () => {
 						</View>
 
 						<View className="flex-1 mr-2">
-							<Text className="text-[15px] leading-5" style={{ color: theme.colors.textPrimary }}>
-								<Text className="font-bold">{notif.user} </Text>
+							<Text className="font-manrope text-[15px] leading-5" style={{ color: theme.colors.textPrimary }}>
+								<Text className="font-manrope font-bold">{notif.user} </Text>
 								{notif.text}
 								{notif.target && (
-									<Text className="font-bold" style={{ color: theme.colors.primary }}>
+									<Text className="font-manrope font-bold" style={{ color: theme.colors.primary }}>
 										{" "}
 										{notif.target}
 									</Text>
 								)}
 							</Text>
 							{notif.quote && (
-								<Text className="italic mt-1" style={{ color: theme.colors.textSecondary }} numberOfLines={2}>
+								<Text className="font-manrope italic mt-1" style={{ color: theme.colors.textSecondary }} numberOfLines={2}>
 									"{notif.quote}"
 								</Text>
 							)}
-							<Text className="text-xs mt-1" style={{ color: theme.colors.textSecondary }}>
+							<Text className="font-manrope text-xs mt-1" style={{ color: theme.colors.textSecondary }}>
 								{notif.time}
 							</Text>
 						</View>
 
 						{notif.type === "follow" ? (
 							<TouchableOpacity className="px-4 py-2 rounded-full" style={{ backgroundColor: theme.colors.primary }}>
-								<Text className="font-semibold text-sm" style={{ color: theme.colors.onPrimary }}>
+								<Text className="font-manrope font-semibold text-sm" style={{ color: theme.colors.onPrimary }}>
 									Follow
 								</Text>
 							</TouchableOpacity>

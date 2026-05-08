@@ -23,3 +23,7 @@ export const getBooksSchema = z.object({
 export const rateBookSchema = z.object({
 	rating: z.number().min(1, "Rating must be at least 1").max(5, "Rating cannot exceed 5"),
 });
+
+export const getSavedBooksSchema = z.object({
+	userId: z.string().optional(),
+});

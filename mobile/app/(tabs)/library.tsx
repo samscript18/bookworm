@@ -19,7 +19,7 @@ export default function Library() {
 		refetch: refetchSavedBooks,
 	} = useQuery({
 		queryKey: ["saved-books"],
-		queryFn: getSavedBooks,
+		queryFn: () => getSavedBooks(),
 	});
 
 	const displayedBooks = savedBooks ?? [];
@@ -27,7 +27,7 @@ export default function Library() {
 	return (
 		<SafeAreaView className="flex-1" style={{ backgroundColor: theme.colors.background }} edges={["top"]}>
 			<View className="flex-row justify-between items-center px-4 pt-4 mb-4">
-				<Text className="text-2xl font-bold" style={{ color: theme.colors.textPrimary }}>
+				<Text className="font-manrope text-2xl font-bold" style={{ color: theme.colors.textPrimary }}>
 					My Library
 				</Text>
 
@@ -87,11 +87,11 @@ export default function Library() {
 
 							<View className="flex-1 justify-between">
 								<View>
-									<Text className="font-bold text-base" style={{ color: theme.colors.textPrimary }} numberOfLines={1}>
+									<Text className="font-manrope font-bold text-base" style={{ color: theme.colors.textPrimary }} numberOfLines={1}>
 										{book.title}
 									</Text>
 
-									<Text className="text-sm mt-1" style={{ color: theme.colors.textSecondary }} numberOfLines={1}>
+									<Text className="font-manrope text-sm mt-1" style={{ color: theme.colors.textSecondary }} numberOfLines={1}>
 										{book.author}
 									</Text>
 								</View>
@@ -146,7 +146,7 @@ export default function Library() {
 					<View className="items-center justify-center pt-[50%] px-10">
 						<Ionicons name="book-outline" size={70} color={isDark ? "#2A2D38" : "#E9E9EA"} />
 
-						<Text className="mt-4 text-center text-base font-medium" style={{ color: theme.colors.textSecondary }}>
+						<Text className="font-manrope mt-4 text-center text-base font-medium" style={{ color: theme.colors.textSecondary }}>
 							No books in "{activeTab}" yet
 						</Text>
 					</View>

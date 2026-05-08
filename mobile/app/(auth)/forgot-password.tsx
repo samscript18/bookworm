@@ -63,10 +63,10 @@ const ForgotPassword = () => {
 					</View>
 				</View>
 
-				<Text className="text-3xl font-bold text-center mb-4" style={{ color: theme.colors.textPrimary }}>
+				<Text className="font-manrope text-3xl font-bold text-center mb-4" style={{ color: theme.colors.textPrimary }}>
 					Forgot Password?
 				</Text>
-				<Text className="text-base text-center px-4 mb-8 leading-6" style={{ color: theme.colors.textSecondary }}>
+				<Text className="font-manrope text-base text-center px-4 mb-8 leading-6" style={{ color: theme.colors.textSecondary }}>
 					Don't worry! Enter your email address and we'll send you a code to reset your password.
 				</Text>
 
@@ -98,7 +98,7 @@ const ForgotPassword = () => {
 								/>
 							</View>
 							{errors.email && (
-								<Text className="mt-1 text-sm" style={{ color: theme.colors.error }}>
+								<Text className="font-manrope mt-1 text-sm" style={{ color: theme.colors.error }}>
 									{errors.email.message}
 								</Text>
 							)}
@@ -110,13 +110,13 @@ const ForgotPassword = () => {
 					{isSubmitting || isForgotPasswordPending ? (
 						<ActivityIndicator size={20} color={theme.colors.onPrimary} />
 					) : (
-						<Text className="text-base font-bold" style={{ color: theme.colors.onPrimary }}>
+						<Text className="font-manrope text-base font-bold" style={{ color: theme.colors.onPrimary }}>
 							Send Reset Code
 						</Text>
 					)}
 				</TouchableOpacity>
 
-				<Text className="text-center text-base mt-8" style={{ color: theme.colors.textSecondary }}>
+				<Text className="font-manrope text-center text-base mt-8" style={{ color: theme.colors.textSecondary }}>
 					Remember your password?{" "}
 					<Link href="/(auth)/login" className="font-bold" style={{ color: theme.colors.primary }}>
 						Back to Login

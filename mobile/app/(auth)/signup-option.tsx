@@ -59,10 +59,10 @@ const SignUpOption = () => {
 
 			<View className="items-center">
 				<Logo />
-				<Text className="mt-3 text-2xl font-bold" style={{ color: theme.colors.textPrimary }}>
+				<Text className="font-manrope mt-3 text-2xl font-bold" style={{ color: theme.colors.textPrimary }}>
 					Create your account
 				</Text>
-				<Text className="mt-2 text-center text-base" style={{ color: theme.colors.textSecondary }}>
+				<Text className="font-manrope mt-2 text-center text-base" style={{ color: theme.colors.textSecondary }}>
 					Choose how you want to get started with BookWorm
 				</Text>
 			</View>
@@ -74,10 +74,10 @@ const SignUpOption = () => {
 							<Ionicons name="mail-outline" size={22} color={theme.colors.onPrimary} />
 						</View>
 						<View className="ml-4 flex-1">
-							<Text className="text-lg font-semibold" style={{ color: theme.colors.textPrimary }}>
+							<Text className="font-manrope text-lg font-semibold" style={{ color: theme.colors.textPrimary }}>
 								Sign up with Email
 							</Text>
-							<Text className="mt-1 text-sm" style={{ color: theme.colors.textSecondary }}>
+							<Text className="font-manrope mt-1 text-sm" style={{ color: theme.colors.textSecondary }}>
 								Use your email and complete the guided signup steps
 							</Text>
 						</View>
@@ -95,10 +95,10 @@ const SignUpOption = () => {
 							</View>
 						)}
 						<View className="ml-4 flex-1">
-							<Text className="text-lg font-semibold" style={{ color: theme.colors.textPrimary }}>
+							<Text className="font-manrope text-lg font-semibold" style={{ color: theme.colors.textPrimary }}>
 								Sign up with Google
 							</Text>
-							<Text className="mt-1 text-sm" style={{ color: theme.colors.textSecondary }}>
+							<Text className="font-manrope mt-1 text-sm" style={{ color: theme.colors.textSecondary }}>
 								Create your account faster with your Google profile
 							</Text>
 						</View>
@@ -107,9 +107,9 @@ const SignUpOption = () => {
 				</TouchableOpacity>
 			</View>
 
-			<Text className="mt-auto mb-8 text-center text-base" style={{ color: theme.colors.textSecondary }}>
+			<Text className="font-manrope mt-auto mb-8 text-center text-base" style={{ color: theme.colors.textSecondary }}>
 				Already have an account?{" "}
-				<Text className="font-bold" style={{ color: theme.colors.primary }} onPress={() => router.push("/(auth)/login")}>
+				<Text className="font-manrope font-bold" style={{ color: theme.colors.primary }} onPress={() => router.push("/(auth)/login")}>
 					Login
 				</Text>
 			</Text>

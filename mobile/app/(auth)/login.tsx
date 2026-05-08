@@ -95,13 +95,13 @@ const Login = () => {
 			<KeyboardAvoidingView className="flex-1" behavior={Platform.OS === "ios" ? "padding" : "height"}>
 				<View className="items-center">
 					<Logo />
-					<Text className="my-[13px] text-2xl font-bold" style={{ color: theme.colors.textPrimary }}>
+					<Text className="font-manrope my-[13px] text-2xl font-bold" style={{ color: theme.colors.textPrimary }}>
 						BookWorm
 					</Text>
-					<Text className="text-[28px] font-bold mt-8" style={{ color: theme.colors.textPrimary }}>
+					<Text className="font-manrope text-[28px] font-bold mt-8" style={{ color: theme.colors.textPrimary }}>
 						Welcome Back!
 					</Text>
-					<Text className="mt-[5px] text-base" style={{ color: theme.colors.textSecondary }}>
+					<Text className="font-manrope mt-[5px] text-base" style={{ color: theme.colors.textSecondary }}>
 						Sign in to continue your reading journey
 					</Text>
 				</View>
@@ -130,7 +130,7 @@ const Login = () => {
 									onBlur={() => setIsFocused({ ...isFocused, email: false })}
 								/>
 								{errors.email && (
-									<Text className="mt-1 text-sm" style={{ color: theme.colors.error }}>
+									<Text className="font-manrope mt-1 text-sm" style={{ color: theme.colors.error }}>
 										{errors.email.message}
 									</Text>
 								)}
@@ -165,7 +165,7 @@ const Login = () => {
 									<Ionicons name={showPassword ? "eye-outline" : "eye-off-outline"} size={20} color={theme.colors.textSecondary} onPress={() => setShowPassword(!showPassword)} />
 								</View>
 								{errors.password && (
-									<Text className="mt-1 text-sm" style={{ color: theme.colors.error }}>
+									<Text className="font-manrope mt-1 text-sm" style={{ color: theme.colors.error }}>
 										{errors.password.message}
 									</Text>
 								)}
@@ -183,7 +183,7 @@ const Login = () => {
 						{isSubmitting || isloggingIn ? (
 							<ActivityIndicator size={20} color={theme.colors.onPrimary} />
 						) : (
-							<Text className="text-lg font-semibold" style={{ color: theme.colors.onPrimary }}>
+							<Text className="font-manrope text-lg font-semibold" style={{ color: theme.colors.onPrimary }}>
 								Login
 							</Text>
 						)}
@@ -191,7 +191,7 @@ const Login = () => {
 
 					<View className="flex-row items-center gap-4 my-6">
 						<View className="flex-1 h-[1px]" style={{ backgroundColor: theme.colors.divider }} />
-						<Text className="text-center text-base" style={{ color: theme.colors.textSecondary }}>
+						<Text className="font-manrope text-center text-base" style={{ color: theme.colors.textSecondary }}>
 							Or continue with
 						</Text>
 						<View className="flex-1 h-[1px]" style={{ backgroundColor: theme.colors.divider }} />
@@ -204,12 +204,12 @@ const Login = () => {
 						disabled={isSigningIn}
 					>
 						{isSigningIn ? <ActivityIndicator size={20} color={theme.colors.textSecondary} /> : <Ionicons name="logo-google" size={24} color={theme.colors.googleBrand} />}
-						<Text className="ml-[10px] text-base" style={{ color: theme.colors.textPrimary }}>
+						<Text className="font-manrope ml-[10px] text-base" style={{ color: theme.colors.textPrimary }}>
 							Google
 						</Text>
 					</TouchableOpacity>
 
-					<Text className="mt-20 text-center text-base" style={{ color: theme.colors.textSecondary }}>
+					<Text className="font-manrope mt-20 text-center text-base" style={{ color: theme.colors.textSecondary }}>
 						Don't have an account?{" "}
 						<Link href="/(auth)/signup-option" className="font-bold" style={{ color: theme.colors.primary }}>
 							Sign Up

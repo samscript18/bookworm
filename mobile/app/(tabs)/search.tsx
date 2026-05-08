@@ -15,7 +15,7 @@ const ListHeader = ({ theme, isDark, searchInput, setSearchInput, activeGenre, s
 	return (
 		<View>
 			<View className="px-4 pt-6 pb-8 rounded-b-[30px]" style={{ backgroundColor: theme.colors.primary }}>
-				<Text className="text-3xl font-bold text-white mb-4">Explore</Text>
+				<Text className="font-manrope text-3xl font-bold text-white mb-4">Explore</Text>
 				<View className="flex-row items-center p-3 rounded-2xl" style={{ backgroundColor: isDark ? "#141821" : "#FFFFFF" }}>
 					<Ionicons name="search" size={20} color={theme.colors.textSecondary} className="mr-2" />
 					<TextInput
@@ -50,7 +50,7 @@ const ListHeader = ({ theme, isDark, searchInput, setSearchInput, activeGenre, s
 								setActiveGenre(genre.name);
 							}}
 						>
-							<Text className="font-semibold capitalize" style={{ color: activeGenre === genre.name ? "#FFFFFF" : theme.colors.textSecondary }}>
+							<Text className="font-manrope font-semibold capitalize" style={{ color: activeGenre === genre.name ? "#FFFFFF" : theme.colors.textSecondary }}>
 								{genre.name}
 							</Text>
 						</TouchableOpacity>
@@ -61,7 +61,7 @@ const ListHeader = ({ theme, isDark, searchInput, setSearchInput, activeGenre, s
 			{genresError && <ErrorBanner message="Failed to load genres" onDismiss={() => refetchGenres()} />}
 
 			<View className="flex-row justify-between items-center mb-4 px-4">
-				<Text className="text-lg font-bold" style={{ color: theme.colors.textPrimary }}>
+				<Text className="font-manrope text-lg font-bold" style={{ color: theme.colors.textPrimary }}>
 					Available Books
 				</Text>
 				<View className="flex-row gap-x-4">

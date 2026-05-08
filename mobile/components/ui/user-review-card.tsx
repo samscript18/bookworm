@@ -14,15 +14,15 @@ const UserReviewCard = (review: Review) => {
 				<TouchableOpacity className="flex-row my-4">
 					<Image source={{ uri: review.book.coverImage }} className="w-[90px] h-[120px] rounded-md mr-3" style={{ backgroundColor: theme.colors.surfaceMuted }} />
 					<View className="flex-1 justify-start gap-y-2">
-						<Text className="font-semibold text-base" style={{ color: theme.colors.textPrimary }}>
+						<Text className="font-manrope font-semibold text-base" style={{ color: theme.colors.textPrimary }}>
 							{review.book.title}
 						</Text>
-						<Text className="text-base mb-1" style={{ color: theme.colors.textSecondary }}>
+						<Text className="font-manrope text-base mb-1" style={{ color: theme.colors.textSecondary }}>
 							{review.book.author}
 						</Text>
 						<View className="flex-row items-center gap-1.5">
 							<StarRow rating={review.rating} size={20} />
-							<Text className="text-sm ml-2" style={{ color: theme.colors.textSecondary }}>
+							<Text className="font-manrope text-sm ml-2" style={{ color: theme.colors.textSecondary }}>
 								{review.rating}/5
 							</Text>
 						</View>
@@ -30,7 +30,7 @@ const UserReviewCard = (review: Review) => {
 				</TouchableOpacity>
 			</Link>
 
-			<Text className="leading-6 mb-4" style={{ color: theme.colors.textPrimary }}>
+			<Text className="font-manrope leading-6 mb-4" style={{ color: theme.colors.textPrimary }}>
 				{review.content}
 			</Text>
 		</View>

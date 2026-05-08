@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { asyncHandler } from "../middleware/asyncHandler";
 import { BookService } from "../services/book.service";
-import { createBookSchema, getBooksSchema } from "../schemas/book.schema";
+import { createBookSchema, getBooksSchema, getSavedBooksSchema } from "../schemas/book.schema";
 import { UnAuthorizedException, UnprocessableEntity } from "../exceptions/exceptions";
 import { ErrorCode } from "../exceptions/root";
 
@@ -76,9 +76,12 @@ export const reactToBook = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const getSavedBooks = asyncHandler(async (req: Request, res: Response) => {
+	const parsed = getSavedBooksSchema.safeParse(req.query);
+	if (!parsed.success) throw new UnprocessableEntity("Invalid query parameters", ErrorCode.UNPROCESSABLE_ENTITY, parsed.error);
+
 	if (!req.user) throw new UnAuthorizedException("User not authenticated", ErrorCode.AUTH_REQUIRED);
 
-	const userId = req.user._id.toString();
+	const userId = parsed.data.userId || req.user._id.toString();
 
 	const savedBooks = await BookService.getSavedBooks(userId);
 	res.json({ success: true, message: "Saved books fetched successfully", data: savedBooks });

@@ -39,7 +39,7 @@ const SettingsScreen = () => {
 				<TouchableOpacity onPress={() => router.back()} className="w-10">
 					<Ionicons name="arrow-back" size={24} color={theme.colors.textPrimary} />
 				</TouchableOpacity>
-				<Text className="text-xl font-bold flex-1 text-center pr-10" style={{ color: theme.colors.textPrimary }}>
+				<Text className="font-manrope text-xl font-bold flex-1 text-center pr-10" style={{ color: theme.colors.textPrimary }}>
 					Settings
 				</Text>
 			</View>
@@ -48,14 +48,14 @@ const SettingsScreen = () => {
 				<View className="flex-row items-center py-6 border-b mb-4" style={{ borderBottomColor: isDark ? theme.colors.accentSurface : "#F3F4F6" }}>
 					<Image source={{ uri: profile?.profileImage }} className="w-16 h-16 rounded-full mr-4" />
 					<View>
-						<Text className="text-lg font-bold" style={{ color: theme.colors.textPrimary }}>
+						<Text className="font-manrope text-lg font-bold" style={{ color: theme.colors.textPrimary }}>
 							{profile?.firstName} {profile?.lastName}
 						</Text>
-						<Text className="mb-1" style={{ color: theme.colors.textSecondary }}>
+						<Text className="font-manrope mb-1" style={{ color: theme.colors.textSecondary }}>
 							{profile?.email}
 						</Text>
-						<TouchableOpacity className="flex-row items-center">
-							<Text className="font-semibold mr-1" style={{ color: theme.colors.primary }}>
+						<TouchableOpacity className="flex-row items-center" onPress={() => router.push("/edit-profile")}>
+							<Text className="font-manrope font-semibold mr-1" style={{ color: theme.colors.primary }}>
 								Edit profile
 							</Text>
 							<Ionicons name="chevron-forward" size={14} color={theme.colors.primary} />
@@ -65,7 +65,7 @@ const SettingsScreen = () => {
 
 				<Section title="Account">
 					<SettingRow icon="mail-outline" title="Email Address" rightText={profile?.email} />
-					<SettingRow icon="lock-closed-outline" title="Password" rightText="••••••••" />
+					<SettingRow icon="lock-closed-outline" title="Password" rightText="••••••••" onPress={() => router.push("/change-password")} />
 					<SettingRow icon="shield-checkmark-outline" title="Privacy & Security" />
 				</Section>
 
@@ -97,7 +97,7 @@ const SettingsScreen = () => {
 					{isloggingOut ? (
 						<ActivityIndicator size="small" color={theme.colors.error} />
 					) : (
-						<Text className="font-bold text-lg" style={{ color: theme.colors.error }}>
+						<Text className="font-manrope font-bold text-lg" style={{ color: theme.colors.error }}>
 							Log Out
 						</Text>
 					)}

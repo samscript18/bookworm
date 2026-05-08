@@ -15,6 +15,7 @@ export default function RootLayout() {
 
 	const [loaded] = useFonts({
 		Manrope: require("../assets/fonts/Manrope-VariableFont_wght.ttf"),
+		Caveat: require("../assets/fonts/Caveat-VariableFont_wght.ttf"),
 	});
 
 	useEffect(() => {
@@ -40,6 +41,8 @@ export default function RootLayout() {
 					<Stack.Screen name="book/write-review" options={{ animation: "fade" }} />
 					<Stack.Screen name="notifications" options={{ animation: "fade" }} />
 					<Stack.Screen name="settings" options={{ animation: "fade" }} />
+					<Stack.Screen name="edit-profile" options={{ animation: "fade" }} />
+					<Stack.Screen name="change-password" options={{ animation: "fade" }} />
 				</Stack>
 			</AppProvider>
 		</GestureHandlerRootView>

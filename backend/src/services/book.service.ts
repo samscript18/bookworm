@@ -87,9 +87,11 @@ export class BookService {
 		const user = await User.findById(userId).select("savedBooks");
 		if (!user) throw new NotFoundException("User not found", ErrorCode.NOT_FOUND);
 
-		const isSaved = user.savedBooks.some((id) => id.toString() === book._id.toString());
+		const isSaved = user.savedBooks.some((id) => id.equals(book._id));
 
-		const updatedUser = await User.findByIdAndUpdate(userId, isSaved ? { $pull: { savedBooks: book._id } } : { $addToSet: { savedBooks: book._id } }, { returnDocument: "after" });
+		const update = isSaved ? { $pull: { savedBooks: book._id } } : { $addToSet: { savedBooks: book._id } };
+
+		const updatedUser = await User.findByIdAndUpdate(userId, update, { returnDocument: "after" });
 
 		return {
 			saved: !isSaved,

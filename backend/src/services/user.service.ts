@@ -7,10 +7,16 @@ import { ErrorCode } from "../exceptions/root";
 import { comparePassword, hashPassword, sanitizeUser } from "../utils/helpers/helper";
 
 export class UserService {
-	static async getUserById(userId: string) {
-		const user = await User.findById(userId);
+	static async getUserById(currentUserId: string, userId?: string) {
+		const targetUserId = userId || currentUserId;
+		const user = await User.findById(targetUserId).populate("followers", "userName profileImage");
 		if (!user) throw new NotFoundException("User not found", ErrorCode.NOT_FOUND);
-		return sanitizeUser(user);
+
+		const returnedUser = sanitizeUser(user);
+
+		const isFollowing = user.followers.some((id) => id.toString() === currentUserId);
+
+		return { ...returnedUser, isFollowing: !!isFollowing };
 	}
 
 	static async editUser(userId: string, data: Partial<IUser>) {
