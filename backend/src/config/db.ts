@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { Notification } from "../models/notification.model";
 
 export const connectDB = async () => {
 	const uri = process.env.MONGO_URI;

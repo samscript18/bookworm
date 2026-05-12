@@ -115,6 +115,13 @@ const swaggerSpec = {
 					password: { type: "string" },
 				},
 			},
+			GoogleAuthRequest: {
+				type: "object",
+				required: ["idToken"],
+				properties: {
+					idToken: { type: "string", minLength: 1 },
+				},
+			},
 			ForgotPasswordRequest: {
 				type: "object",
 				required: ["email"],
@@ -153,7 +160,6 @@ const swaggerSpec = {
 				type: "object",
 				properties: {
 					pushNotifications: { type: "boolean", example: true },
-					darkMode: { type: "boolean", example: false },
 				},
 			},
 			UpdatePreferencesSuccessResponse: {
@@ -165,16 +171,16 @@ const swaggerSpec = {
 						type: "object",
 						properties: {
 							pushNotifications: { type: "boolean", example: true },
-							darkMode: { type: "boolean", example: false },
 						},
 					},
 				},
 			},
 			FcmTokenRequest: {
 				type: "object",
-				required: ["fcmToken"],
+				required: ["fcmToken", "platform"],
 				properties: {
 					fcmToken: { type: "string", minLength: 10, example: "fcm_device_token_abc123xyz" },
+					platform: { type: "string", enum: ["ios", "android"], example: "ios" },
 				},
 			},
 			CreateBookRequest: {
@@ -273,14 +279,7 @@ const swaggerSpec = {
 						type: "object",
 						properties: {
 							books: { type: "array", items: { $ref: "#/components/schemas/Book" } },
-							meta: {
-								type: "object",
-								properties: {
-									totalPages: { type: "integer", example: 12 },
-									currentPage: { type: "integer", example: 1 },
-									count: { type: "integer", example: 342 },
-								},
-							},
+							nextCursor: { type: "string", format: "date-time", nullable: true },
 						},
 					},
 				},
@@ -404,9 +403,7 @@ const swaggerSpec = {
 					meta: {
 						type: "object",
 						properties: {
-							total: { type: "integer", example: 28 },
-							page: { type: "integer", example: 1 },
-							limit: { type: "integer", example: 20 },
+							count: { type: "integer", example: 28 },
 						},
 					},
 				},
@@ -426,9 +423,38 @@ const swaggerSpec = {
 				type: "object",
 				properties: {
 					_id: { type: "string" },
+					recipient: { type: "string" },
+					sender: { type: "string" },
 					type: { type: "string", example: "review.like", enum: ["user.folow", "review.like", "review.reply", "comment.reply", "comment.like"] },
+					category: { type: "string", example: "all" },
 					entityId: { type: "string", nullable: true },
-					latestSender: { $ref: "#/components/schemas/User" },
+					metadata: {
+						type: "object",
+						properties: {
+							bookTitle: { type: "string" },
+							bookCover: { type: "string", format: "uri" },
+							textSnippet: { type: "string" },
+						},
+						nullable: true,
+					},
+					isRead: { type: "boolean", example: false },
+					createdAt: { type: "string", format: "date-time" },
+					updatedAt: { type: "string", format: "date-time" },
+				},
+			},
+			NotificationGroup: {
+				type: "object",
+				properties: {
+					_id: {
+						type: "object",
+						properties: {
+							type: { type: "string", example: "review.like" },
+							entityId: { type: "string", nullable: true },
+							day: { type: "string", example: "2026-05-12" },
+						},
+					},
+					latestSender: { type: "string" },
+					senderInfo: { $ref: "#/components/schemas/User" },
 					count: { type: "integer", example: 3 },
 					metadata: {
 						type: "object",
@@ -442,24 +468,40 @@ const swaggerSpec = {
 					createdAt: { type: "string", format: "date-time" },
 				},
 			},
+			NotificationSuccessResponse: {
+				type: "object",
+				properties: {
+					success: { type: "boolean", example: true },
+					message: { type: "string", example: "Notification marked as read" },
+					data: { $ref: "#/components/schemas/Notification" },
+				},
+			},
+			NotificationsBulkReadResponse: {
+				type: "object",
+				properties: {
+					success: { type: "boolean", example: true },
+					message: { type: "string", example: "All notifications marked as read" },
+					data: { type: "object" },
+				},
+			},
 			NotificationsListSuccessResponse: {
 				type: "object",
 				properties: {
 					success: { type: "boolean", example: true },
 					message: { type: "string", example: "Notifications fetched successfully" },
 					data: {
-						type: "array",
-						items: { $ref: "#/components/schemas/Notification" },
-					},
-					meta: {
 						type: "object",
 						properties: {
-							totalCount: { type: "integer", example: 45 },
-							currentPage: { type: "integer", example: 1 },
-							totalPages: { type: "integer", example: 3 },
-							limit: { type: "integer", example: 20 },
+							data: { type: "array", items: { $ref: "#/components/schemas/NotificationGroup" } },
+							nextCursor: { type: "string", format: "date-time", nullable: true },
 						},
 					},
+				},
+			},
+			SimpleSuccessResponse: {
+				type: "object",
+				properties: {
+					success: { type: "boolean", example: true },
 				},
 			},
 		},
@@ -549,11 +591,26 @@ const swaggerSpec = {
 				},
 			},
 		},
+		"/auth/google": {
+			post: {
+				tags: ["Auth"],
+				summary: "Authenticate with Google",
+				requestBody: {
+					required: true,
+					content: { "application/json": { schema: { $ref: "#/components/schemas/GoogleAuthRequest" } } },
+				},
+				responses: {
+					200: { description: "Google authentication successful", content: { "application/json": { schema: { $ref: "#/components/schemas/AuthSuccessResponse" } } } },
+					422: { description: "Validation error", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } },
+				},
+			},
+		},
 		"/users/me": {
 			get: {
 				tags: ["Users"],
 				summary: "Get current user profile",
 				security: [{ bearerAuth: [] }],
+				parameters: [{ in: "query", name: "userId", schema: { type: "string" }, description: "Optional. Fetch another user's profile." }],
 				responses: {
 					200: { description: "Profile retrieved", content: { "application/json": { schema: { $ref: "#/components/schemas/UserSuccessResponse" } } } },
 					401: { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } },
@@ -630,7 +687,7 @@ const swaggerSpec = {
 					content: { "application/json": { schema: { $ref: "#/components/schemas/FcmTokenRequest" } } },
 				},
 				responses: {
-					200: { description: "Device token removed", content: { "application/json": { schema: { $ref: "#/components/schemas/MessageOnlySuccessResponse" } } } },
+					200: { description: "Device token removed", content: { "application/json": { schema: { $ref: "#/components/schemas/SimpleSuccessResponse" } } } },
 					401: { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } },
 					422: { description: "Validation error", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } },
 				},
@@ -667,7 +724,7 @@ const swaggerSpec = {
 				summary: "Get books with pagination and filters",
 				security: [{ bearerAuth: [] }],
 				parameters: [
-					{ in: "query", name: "page", schema: { type: "number", minimum: 1 } },
+					{ in: "query", name: "cursor", schema: { type: "string" }, description: "Cursor for pagination (ISO date string)" },
 					{ in: "query", name: "limit", schema: { type: "number", minimum: 1 } },
 					{ in: "query", name: "search", schema: { type: "string" } },
 					{ in: "query", name: "genre", schema: { type: "string" } },
@@ -707,6 +764,7 @@ const swaggerSpec = {
 				tags: ["Books"],
 				summary: "Get books saved by current user",
 				security: [{ bearerAuth: [] }],
+				parameters: [{ in: "query", name: "userId", schema: { type: "string" }, description: "Optional. Defaults to the current user." }],
 				responses: {
 					200: {
 						description: "Saved books fetched",
@@ -746,12 +804,8 @@ const swaggerSpec = {
 		"/books/genres/all": {
 			get: {
 				tags: ["Books"],
-				summary: "Get all genres with pagination",
+				summary: "Get all genres",
 				security: [{ bearerAuth: [] }],
-				parameters: [
-					{ in: "query", name: "page", schema: { type: "number", minimum: 1 }, default: 1 },
-					{ in: "query", name: "limit", schema: { type: "number", minimum: 1, maximum: 100 }, default: 20 },
-				],
 				responses: {
 					200: {
 						description: "All genres fetched",
@@ -788,18 +842,43 @@ const swaggerSpec = {
 				},
 			},
 		},
-		"/users/me/notifications": {
+		"/notifications": {
 			get: {
-				tags: ["Users"],
+				tags: ["Notifications"],
 				summary: "Fetch authenticated user notifications",
 				security: [{ bearerAuth: [] }],
 				parameters: [
 					{ in: "query", name: "category", schema: { type: "string", enum: ["all", "mentions"] }, default: "all", description: "Filter notifications by category" },
-					{ in: "query", name: "page", schema: { type: "number", minimum: 1 }, default: 1 },
+					{ in: "query", name: "cursor", schema: { type: "string", format: "date-time" } },
 					{ in: "query", name: "limit", schema: { type: "number", minimum: 1, maximum: 100 }, default: 20 },
 				],
 				responses: {
 					200: { description: "Notifications fetched", content: { "application/json": { schema: { $ref: "#/components/schemas/NotificationsListSuccessResponse" } } } },
+					401: { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } },
+					422: { description: "Validation error", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } },
+				},
+			},
+		},
+		"/notifications/{notificationId}/mark-as-read": {
+			patch: {
+				tags: ["Notifications"],
+				summary: "Mark a notification as read",
+				security: [{ bearerAuth: [] }],
+				parameters: [{ in: "path", name: "notificationId", required: true, schema: { type: "string" } }],
+				responses: {
+					200: { description: "Notification marked as read", content: { "application/json": { schema: { $ref: "#/components/schemas/NotificationSuccessResponse" } } } },
+					401: { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } },
+					404: { description: "Notification not found", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } },
+				},
+			},
+		},
+		"/notifications/mark-all-as-read": {
+			patch: {
+				tags: ["Notifications"],
+				summary: "Mark all notifications as read",
+				security: [{ bearerAuth: [] }],
+				responses: {
+					200: { description: "All notifications marked as read", content: { "application/json": { schema: { $ref: "#/components/schemas/NotificationsBulkReadResponse" } } } },
 					401: { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } },
 				},
 			},
@@ -819,11 +898,12 @@ const swaggerSpec = {
 				},
 			},
 		},
-		"/reviews/user/me": {
+		"/reviews/user/{userId}": {
 			get: {
 				tags: ["Reviews"],
-				summary: "Get reviews posted by current user",
+				summary: "Get reviews posted by user",
 				security: [{ bearerAuth: [] }],
+				parameters: [{ in: "path", name: "userId", required: true, schema: { type: "string" } }],
 				responses: {
 					200: { description: "User reviews fetched", content: { "application/json": { schema: { $ref: "#/components/schemas/ReviewsListSuccessResponse" } } } },
 				},

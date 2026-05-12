@@ -1,7 +1,7 @@
 import { Schema, model, Document, Types, HydratedDocument } from "mongoose";
 
 export enum NotificationType {
-	userFollow = "user.folow",
+	userFollow = "user.follow",
 	reviewLike = "review.like",
 	reviewReply = "review.reply",
 	commentReply = "comment.reply",
