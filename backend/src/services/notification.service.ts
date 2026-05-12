@@ -1,7 +1,9 @@
-import { ClientSession, Types } from "mongoose";
-import { Notification, NotificationType } from "../models/notification.model";
+import { ClientSession, QueryFilter, Types } from "mongoose";
+import { Notification, NotificationDocument, NotificationType } from "../models/notification.model";
 import { DEFAULT_IMAGE, User } from "../models/user.model";
 import { messaging } from "../config/firebase";
+import { NotFoundException } from "../exceptions/exceptions";
+import { ErrorCode } from "../exceptions/root";
 
 export class NotificationService {
 	private static getNotificationBody(name: string, type: NotificationType): string {
@@ -105,14 +107,20 @@ export class NotificationService {
 		}
 	}
 
-	static async getGroupedNotifications(userId: string, category: string, page: number, limit: number) {
-		const match: any = { recipient: new Types.ObjectId(userId) };
+	static async getGroupedNotifications(userId: string, category: string, cursor: string, limit: number) {
+		const match: QueryFilter<NotificationDocument> = { recipient: new Types.ObjectId(userId) };
 
 		if (category === "mentions") match.type = { $in: [NotificationType.reviewReply, NotificationType.commentReply] };
 
+		if (cursor) {
+			match.createdAt = {
+				$lt: new Date(cursor),
+			};
+		}
+
 		const notifications = await Notification.aggregate([
 			{ $match: match },
-			{ $sort: { createdAt: -1 } },
+			{ $sort: { createdAt: -1, _id: -1 } },
 			{
 				$group: {
 					_id: {
@@ -126,23 +134,37 @@ export class NotificationService {
 					createdAt: { $first: "$createdAt" },
 				},
 			},
+			{ $sort: { createdAt: -1 } },
+			{ $limit: limit + 1 },
 			{ $lookup: { from: "users", localField: "latestSender", foreignField: "_id", as: "senderInfo" } },
 			{ $unwind: "$senderInfo" },
-			{ $sort: { createdAt: -1 } },
 		]);
 
-		const skip = (page - 1) * limit;
-		let paginatedNotifications = notifications.slice(skip, skip + limit);
-		const count = notifications.length;
-		const totalPages = Math.ceil(count / limit);
+		const hasNextPage = notifications.length > limit;
+
+		const data = hasNextPage ? notifications.slice(0, limit) : notifications;
+
+		const nextCursor = hasNextPage && data.length ? data[data.length - 1].createdAt : null;
 
 		return {
-			data: paginatedNotifications,
-			meta: {
-				totalPages,
-				currentPage: page,
-				count,
-			},
+			data,
+			nextCursor,
 		};
+	}
+
+	static async markAllAsRead(userId: string) {
+		const notifications = await Notification.updateMany({ recipient: new Types.ObjectId(userId), isRead: false }, { isRead: true }).sort({ createdAt: -1 });
+
+		return notifications;
+	}
+
+	static async markAsRead(notificationId: string) {
+		const notification = await Notification.findByIdAndUpdate(notificationId, { isRead: true }, { returnDocument: "after" });
+
+		if (!notification) {
+			throw new NotFoundException("Notification not found", ErrorCode.NOT_FOUND);
+		}
+
+		return notification;
 	}
 }

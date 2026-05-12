@@ -24,12 +24,6 @@ export const fcmTokenSchema = z.object({
 	platform: z.enum(["ios", "android"], "Platform must be either 'ios' or 'android'"),
 });
 
-export const getNotificationsSchema = z.object({
-	category: z.enum(["all", "mentions"]).default("all"),
-	page: z.number().min(1).default(1),
-	limit: z.number().min(1).max(100).default(20),
-});
-
 export const getProfileSchema = z.object({
 	userId: z.string().optional(),
 });
