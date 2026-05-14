@@ -30,7 +30,7 @@ const SettingRow = ({ icon, title, type = "link", value, onValueChange, rightTex
 	const Container = isSwitch ? View : TouchableOpacity;
 
 	return (
-		<Container className="flex-row items-center py-6 border-b" style={{ borderBottomColor: isDark ? theme.colors.accentSurface : "#F3F4F6" }} onPress={!isSwitch ? onPress : undefined} activeOpacity={0.7}>
+		<Container className="flex-row items-center py-6 border-b" style={{ borderBottomColor: isDark ? theme.colors.accentSurface : theme.colors.inputBorder }} onPress={!isSwitch ? onPress : undefined} activeOpacity={0.7}>
 			<Ionicons name={icon} size={22} color={theme.colors.textSecondary} className="mr-3" />
 			<Text className="font-manrope flex-1 text-base" style={{ color: theme.colors.textPrimary }}>
 				{title}
@@ -38,7 +38,7 @@ const SettingRow = ({ icon, title, type = "link", value, onValueChange, rightTex
 
 			{rightText && (
 				<Text className={`mr-2 ${rightText === "••••••••" ? "tracking-widest" : ""}`} style={{ color: theme.colors.textSecondary }}>
-					{rightText}
+					{rightText.length > 22 ? rightText.slice(0, 22) + "..." : rightText}
 				</Text>
 			)}
 

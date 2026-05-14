@@ -42,6 +42,11 @@ export class CommentService {
 		}
 	}
 
+	static async getComment(commentId: string) {
+		const comment = await Comment.findById(commentId).select("review").lean();
+		return comment;
+	}
+
 	static async getCommentsByReviewId(reviewId: string) {
 		const comments = await Comment.find({ review: reviewId }).populate("user", "userName profileImage").sort({ createdAt: -1 }).lean();
 		return comments;

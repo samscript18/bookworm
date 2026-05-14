@@ -116,7 +116,6 @@ export default function Library() {
 									</View>
 								</View>
 
-								{/* Progress */}
 								{activeTab === "Reading" && (
 									<View className="mt-3">
 										<View

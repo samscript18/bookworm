@@ -243,7 +243,7 @@ export default function WriteReview() {
 						paddingBottom: 10,
 					}}
 					indicatorStyle={{
-						backgroundColor: isDark ? "#666" : "#CCC",
+						backgroundColor: theme.colors.textSecondary,
 						width: 40,
 					}}
 				>

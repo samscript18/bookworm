@@ -1,15 +1,22 @@
 import { BaseModelType } from "..";
 
 export type Notification = {
-	recipient: string;
-	sender: string;
-	type: string;
-	category: string;
-	entityId?: string;
-	metadata?: {
-		bookTitle: string;
-		bookCover: string;
-		textSnippet: string;
-	};
+	type: "follow" | "like" | "like_multi" | "comment";
+	user: string;
+	userId: string;
+	text: string;
+	time: string;
+	avatar?: string;
+	avatars?: string[];
+	target?: string;
+	quote?: string;
+	image?: string;
+	count?: number;
 	isRead: boolean;
-} & BaseModelType;
+	isFollowing?: boolean;
+	bookId?: string;
+	reviewId?: string;
+	commentId?: string;
+	notificationId: string;
+	id: string;
+};

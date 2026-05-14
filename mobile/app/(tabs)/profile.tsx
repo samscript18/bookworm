@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { View, Text, Image, TouchableOpacity, FlatList, ActivityIndicator } from "react-native";
+import { View, Text, Image, TouchableOpacity, FlatList, ActivityIndicator, RefreshControl } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -35,6 +35,7 @@ export default function Profile() {
 		isLoading: isProfileLoading,
 		error: profileError,
 		refetch: refetchProfile,
+		isRefetching: isProfileRefetching,
 	} = useQuery({
 		queryKey: ["profile", userId],
 		queryFn: () => getProfile(userId),
@@ -70,9 +71,9 @@ export default function Profile() {
 	} = useMutation({
 		mutationKey: ["react-to-user", profileId],
 		mutationFn: reactToUser,
-		onSuccess: () => { 
+		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["profile", userId] });
-		}
+		},
 	});
 
 	const isLoading = activeTab === "Reviews" ? isReviewsLoading : isSavedLoading;
@@ -142,7 +143,7 @@ export default function Profile() {
 				</>
 			)}
 
-			{profileId !== user?._id && (
+			{profile && profileId !== user?._id && (
 				<TouchableOpacity onPress={async () => await _reactToUser({ userId: profileId })} className="py-3 rounded-2xl items-center mt-8 mb-2" style={{ backgroundColor: theme.colors.primary }} disabled={isReacting}>
 					{isReacting ? (
 						<ActivityIndicator size={20} color={theme.colors.onPrimary} />
@@ -202,6 +203,7 @@ export default function Profile() {
 					</View>
 				}
 				contentContainerStyle={{ paddingBottom: 10, paddingInline: 12 }}
+				refreshControl={<RefreshControl refreshing={isProfileRefetching} onRefresh={async () => await refetchProfile()} colors={[theme.colors.primary]} tintColor={theme.colors.primary} />}
 			/>
 		</SafeAreaView>
 	);

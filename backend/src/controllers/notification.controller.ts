@@ -40,3 +40,11 @@ export const markAllAsRead = asyncHandler(async (req: Request, res: Response) =>
 	const notifications = await NotificationService.markAllAsRead(userId);
 	res.json({ success: true, message: "All notifications marked as read", data: notifications });
 });
+
+export const getUnreadCount = asyncHandler(async (req: Request, res: Response) => {
+	if (!req.user) throw new UnAuthorizedException("User not authenticated", ErrorCode.AUTH_REQUIRED);
+	const userId = req.user._id.toString();
+
+	const count = await NotificationService.getUnreadCount(userId);
+	res.json({ success: true, message: "Unread count fetched successfully", data: { count } });
+});

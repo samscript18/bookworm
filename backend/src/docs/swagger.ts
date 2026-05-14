@@ -498,6 +498,19 @@ const swaggerSpec = {
 					},
 				},
 			},
+			NotificationsUnreadCountResponse: {
+				type: "object",
+				properties: {
+					success: { type: "boolean", example: true },
+					message: { type: "string", example: "Unread count fetched successfully" },
+					data: {
+						type: "object",
+						properties: {
+							count: { type: "integer", example: 12 },
+						},
+					},
+				},
+			},
 			SimpleSuccessResponse: {
 				type: "object",
 				properties: {
@@ -879,6 +892,17 @@ const swaggerSpec = {
 				security: [{ bearerAuth: [] }],
 				responses: {
 					200: { description: "All notifications marked as read", content: { "application/json": { schema: { $ref: "#/components/schemas/NotificationsBulkReadResponse" } } } },
+					401: { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } },
+				},
+			},
+		},
+		"/notifications/unread-count": {
+			get: {
+				tags: ["Notifications"],
+				summary: "Get unread notifications count",
+				security: [{ bearerAuth: [] }],
+				responses: {
+					200: { description: "Unread count fetched successfully", content: { "application/json": { schema: { $ref: "#/components/schemas/NotificationsUnreadCountResponse" } } } },
 					401: { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } },
 				},
 			},

@@ -1,3 +1,4 @@
+import React, { useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { Image, Pressable, Share, Text, TouchableOpacity, View } from "react-native";
 import { StarRow } from "./star-row";
@@ -6,14 +7,17 @@ import { Review } from "@/types/review/review";
 import { Link, useRouter } from "expo-router";
 import { getRelativeTime } from "@/lib/utils";
 import { reactToReview } from "@/lib/services/review.service";
-import { QueryClient, useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { saveBook } from "@/lib/services/book.service";
 import { useAuthStore } from "@/store/useAuthStore";
 
-const ReviewCard = ({ review, queryClient, isRefetching }: { review: Review; queryClient: QueryClient; isRefetching: boolean }) => {
+const ReviewCard = ({ review, isRefetching, onPressComment, highlight }: { review: Review; isRefetching: boolean; onPressComment?: (reviewId: string) => void; highlight?: boolean }) => {
 	const { theme } = useThemeStore();
 	const router = useRouter();
 	const { user } = useAuthStore();
+	const queryClient = useQueryClient();
+	const [expanded, setExpanded] = useState<boolean>(false);
+	const shouldTruncate = review.content.length > 200;
 
 	const { mutateAsync: _reactToReview, isPending: isReacting } = useMutation({
 		mutationKey: ["react-to-review", review._id],
@@ -131,6 +135,10 @@ const ReviewCard = ({ review, queryClient, isRefetching }: { review: Review; que
 			style={{
 				borderBottomWidth: 1,
 				borderBottomColor: theme.colors.surfaceMuted,
+				backgroundColor: highlight ? `${theme.colors.primary}14` : "transparent",
+				borderRadius: highlight ? 16 : 0,
+				paddingHorizontal: highlight ? 12 : 0,
+				paddingTop: highlight ? 12 : 0,
 			}}
 		>
 			<View className="flex-row items-center justify-between mb-3">
@@ -209,7 +217,19 @@ const ReviewCard = ({ review, queryClient, isRefetching }: { review: Review; que
 			</Link>
 
 			<Text className="font-manrope leading-6 mb-4" style={{ color: theme.colors.textPrimary }}>
-				{review.content}
+				{shouldTruncate && !expanded ? `${review.content.slice(0, 200)}...` : review.content}
+
+				{shouldTruncate && (
+					<Text
+						onPress={() => setExpanded((prev) => !prev)}
+						style={{
+							color: theme.colors.primary,
+							fontWeight: "600",
+						}}
+					>
+						{expanded ? "Show Less" : "Read More"}
+					</Text>
+				)}
 			</Text>
 
 			<View className="flex-row items-center justify-between">
@@ -234,7 +254,7 @@ const ReviewCard = ({ review, queryClient, isRefetching }: { review: Review; que
 						</Text>
 					</TouchableOpacity>
 
-					<TouchableOpacity className="flex-row items-center ml-4">
+					<TouchableOpacity className="flex-row items-center ml-4" onPress={() => onPressComment?.(review._id)}>
 						<Ionicons name="chatbubble-outline" size={20} color={theme.colors.textSecondary} />
 						<Text
 							className="font-manrope ml-1"
@@ -266,4 +286,6 @@ const ReviewCard = ({ review, queryClient, isRefetching }: { review: Review; que
 	);
 };
 
-export default ReviewCard;
+ReviewCard.displayName = "ReviewCard";
+
+export default React.memo(ReviewCard);

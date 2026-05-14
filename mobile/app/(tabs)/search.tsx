@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, ScrollView, TextInput, TouchableOpacity, ActivityIndicator, FlatList, Image } from "react-native";
+import { View, Text, ScrollView, TextInput, TouchableOpacity, ActivityIndicator, FlatList, Image, RefreshControl } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useThemeStore } from "@/store/useThemeStore";
@@ -90,6 +90,7 @@ const Search = () => {
 		data: genres,
 		error: genresError,
 		refetch: refetchGenres,
+		isRefetching: isRefetchingGenres,
 	} = useQuery({
 		queryKey: ["all-genres"],
 		queryFn: () => getAllGenres(),
@@ -102,6 +103,7 @@ const Search = () => {
 		isFetchingNextPage,
 		error: booksError,
 		refetch: refetchBooks,
+		isRefetching,
 	} = useInfiniteQuery({
 		queryKey: ["all-books", params],
 		initialPageParam: undefined as string | undefined,
@@ -137,6 +139,17 @@ const Search = () => {
 							<BookCard book={item} viewMode={viewMode} />
 						</View>
 					)}
+					refreshControl={
+						<RefreshControl
+							refreshing={isRefetching || isRefetchingGenres}
+							onRefresh={async () => {
+								await refetchGenres();
+								await refetchBooks();
+							}}
+							colors={[theme.colors.primary]}
+							tintColor={theme.colors.primary}
+						/>
+					}
 					onEndReached={() => {
 						if (hasNextPage) fetchNextPage();
 					}}

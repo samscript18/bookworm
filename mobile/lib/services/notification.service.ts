@@ -1,8 +1,8 @@
 import { ApiResponse } from "@/types/api";
 import { authApi } from "../config/axios-instance";
 import { AxiosErrorShape, errorHandler } from "../config/axios-error";
-import { Notification } from "@/types/notification/notification";
 import { getNotificationsParams } from "@/types/notification/notification.dto";
+import { Notification } from "@/types/notification/notification";
 
 export const getNotifications = async (params: getNotificationsParams) => {
 	try {
@@ -11,7 +11,22 @@ export const getNotifications = async (params: getNotificationsParams) => {
 				notifications: Notification[];
 				nextCursor: string | null;
 			}>
-		>("notifications/", { params });
+		>("/notifications/", { params });
+
+		return response.data.data;
+	} catch (error) {
+		errorHandler(error as AxiosErrorShape | string);
+		throw error;
+	}
+};
+
+export const getNotificationsUnreadCount = async () => {
+	try {
+		const response = await authApi.get<
+			ApiResponse<{
+				count: number;
+			}>
+		>("/notifications/unread-count");
 
 		return response.data.data;
 	} catch (error) {

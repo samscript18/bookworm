@@ -14,7 +14,7 @@ export class UserService {
 
 		const returnedUser = sanitizeUser(user);
 
-		const isFollowing = user.followers.some((id) => id.toString() === currentUserId);
+		const isFollowing = user.followers.some((follower) => follower._id.toString() === currentUserId);
 
 		return { ...returnedUser, isFollowing: !!isFollowing };
 	}

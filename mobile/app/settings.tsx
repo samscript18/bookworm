@@ -35,7 +35,7 @@ const SettingsScreen = () => {
 
 	return (
 		<SafeAreaView className="flex-1" style={{ backgroundColor: theme.colors.background }} edges={["top"]}>
-			<View className="flex-row items-center px-4 py-3 border-b" style={{ borderBottomColor: isDark ? theme.colors.accentSurface : "#F3F4F6" }}>
+			<View className="flex-row items-center px-4 py-3 border-b" style={{ borderBottomColor: isDark ? theme.colors.accentSurface : theme.colors.inputBorder }}>
 				<TouchableOpacity onPress={() => router.back()} className="w-10">
 					<Ionicons name="arrow-back" size={24} color={theme.colors.textPrimary} />
 				</TouchableOpacity>
@@ -45,7 +45,7 @@ const SettingsScreen = () => {
 			</View>
 
 			<ScrollView showsVerticalScrollIndicator={false} className="px-4">
-				<View className="flex-row items-center py-6 border-b mb-4" style={{ borderBottomColor: isDark ? theme.colors.accentSurface : "#F3F4F6" }}>
+				<View className="flex-row items-center py-6 border-b mb-4" style={{ borderBottomColor: isDark ? theme.colors.accentSurface : theme.colors.inputBorder }}>
 					<Image source={{ uri: profile?.profileImage }} className="w-16 h-16 rounded-full mr-4" />
 					<View>
 						<Text className="font-manrope text-lg font-bold" style={{ color: theme.colors.textPrimary }}>
