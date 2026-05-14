@@ -1,12 +1,9 @@
 import * as nodemailer from "nodemailer";
 import hbs from "nodemailer-express-handlebars";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 import secrets from "../constants/secrets.constant";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const templatesPath = path.resolve(__dirname, "../templates");
+const templatesPath = path.resolve(__dirname, "../../src/templates");
 
 async function transporter() {
 	const account = {
