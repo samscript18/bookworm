@@ -1,72 +1,88 @@
 {
-	"expo": {
-		"name": "Bookworm",
-		"slug": "bookworm",
-		"scheme": "bookworm",
-		"version": "1.0.0",
-		"orientation": "portrait",
-		"icon": "./assets/images/icon.png",
-		"userInterfaceStyle": "automatic",
-		"newArchEnabled": true,
-		"jsEngine": "hermes",
-		"ios": {
-			"googleServicesFile": "./GoogleService-Info.plist",
-			"supportsTablet": true,
-			"bundleIdentifier": "com.anonymous.bookworm",
-			"entitlements": {
-				"aps-environment": "development"
-			},
-			"config": {
-				"googleSignIn": {
-					"reservedClientId": "com.googleusercontent.apps.627593654072-p77siv43d2ilgiimlhh90me27krld11k"
-				}
-			},
-			"infoPlist": {
-				"CFBundleURLTypes": [
-					{
-						"CFBundleURLSchemes": ["com.googleusercontent.apps.627593654072-p77siv43d2ilgiimlhh90me27krld11k"]
-					}
-				]
-			}
-		},
-		"android": {
-			"googleServicesFile": "./google-services.json",
-			"adaptiveIcon": {
-				"backgroundColor": "#E6F4FE",
-				"foregroundImage": "./assets/images/icon.png",
-				"backgroundImage": "./assets/images/icon.png",
-				"monochromeImage": "./assets/images/icon.png"
-			},
-			"edgeToEdgeEnabled": true,
-			"predictiveBackGestureEnabled": false,
-			"package": "com.anonymous.bookworm"
-		},
-		"web": {
-			"output": "static",
-			"favicon": "./assets/images/icon.png",
-			"bundler": "metro"
-		},
-		"plugins": [
-			"expo-router",
-			"@react-native-firebase/app",
-			"./plugins/withModularHeaders",
-			[
-				"expo-splash-screen",
-				{
-					"image": "./assets/images/icon.png",
-					"imageWidth": 200,
-					"resizeMode": "contain",
-					"backgroundColor": "#ffffff",
-					"dark": {
-						"backgroundColor": "#000000"
-					}
-				}
-			],
-			"expo-font"
-		],
-		"experiments": {
-			"typedRoutes": true,
-			"reactCompiler": true
-		}
-	}
+  "expo": {
+    "name": "Bookworm",
+    "slug": "bookworm",
+    "scheme": "bookworm",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "jsEngine": "hermes",
+    "ios": {
+      "googleServicesFile": "./GoogleService-Info.plist",
+      "supportsTablet": true,
+      "bundleIdentifier": "com.anonymous.bookworm",
+      "entitlements": {
+        "aps-environment": "development"
+      },
+      "config": {
+        "googleSignIn": {
+          "reservedClientId": "com.googleusercontent.apps.627593654072-p77siv43d2ilgiimlhh90me27krld11k"
+        }
+      },
+      "infoPlist": {
+        "CFBundleURLTypes": [
+          {
+            "CFBundleURLSchemes": [
+              "com.googleusercontent.apps.627593654072-p77siv43d2ilgiimlhh90me27krld11k"
+            ]
+          },
+          {
+            "CFBundleURLSchemes": [
+              "com.googleusercontent.apps.627593654072-p77siv43d2ilgiimlhh90me27krld11k"
+            ]
+          }
+        ],
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "googleServicesFile": "./google-services.json",
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/images/icon.png",
+        "backgroundImage": "./assets/images/icon.png",
+        "monochromeImage": "./assets/images/icon.png"
+      },
+      "edgeToEdgeEnabled": true,
+      "predictiveBackGestureEnabled": false,
+      "package": "com.anonymous.bookworm"
+    },
+    "web": {
+      "output": "static",
+      "favicon": "./assets/images/icon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-router",
+      "@react-native-firebase/app",
+      "./plugins/withModularHeaders",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#ffffff",
+          "dark": {
+            "backgroundColor": "#000000"
+          }
+        }
+      ],
+      "expo-font",
+      "expo-web-browser",
+      "@react-native-google-signin/google-signin"
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "e79c5b10-c145-40c0-9db7-a28ae28e850c"
+      }
+    }
+  }
 }
