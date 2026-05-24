@@ -3,8 +3,7 @@ import { AxiosErrorShape, errorHandler } from "../config/axios-error";
 import { publicApi } from "../config/axios-instance";
 import { ApiResponse } from "@/types/api";
 import { User } from "@/types/user/user";
-import { signInWithGoogle } from "../config/google";
-import { GoogleSignin } from "@react-native-google-signin/google-signin";
+import { signInWithGoogle, signOutFromGoogle } from "../config/google";
 import { removeFcmToken } from "./user.service";
 
 export const checkEmail = async (data: CheckEmailDto) => {
@@ -83,7 +82,7 @@ export const googleAuth = async () => {
 export const logout = async (data: LogoutDto) => {
 	try {
 		await removeFcmToken({ fcmToken: data.token, platform: data.platform });
-		await GoogleSignin.signOut();
+		await signOutFromGoogle();
 		return true;
 	} catch (error) {
 		errorHandler(error as AxiosErrorShape | string);

@@ -9,7 +9,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { logout } from "@/lib/services/auth.service";
 import { STORAGE_KEYS } from "@/constants/storageKeys";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { getSecureItem } from "@/lib/config/secure-storage";
 import { getProfile } from "@/lib/services/user.service";
 
 const SettingsScreen = () => {
@@ -88,7 +88,7 @@ const SettingsScreen = () => {
 					className="border-2 py-4 rounded-2xl items-center mb-10 mt-2"
 					style={{ borderColor: theme.colors.error }}
 					onPress={async () => {
-						const token = await AsyncStorage.getItem(STORAGE_KEYS.FCM_TOKEN);
+						const token = await getSecureItem(STORAGE_KEYS.FCM_TOKEN);
 						const platform = Platform.OS === "ios" ? "ios" : "android";
 						if (!token || !platform) return;
 						await _logout({ token, platform });

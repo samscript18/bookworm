@@ -1,52 +1,53 @@
-import Constants, { ExecutionEnvironment } from "expo-constants";
+import Constants from "expo-constants";
+import * as Device from "expo-device";
+import * as Notifications from "expo-notifications";
+import { Platform } from "react-native";
 
-const isExpoGo = Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
+Notifications.setNotificationHandler({
+	handleNotification: async () => ({
+		shouldPlaySound: false,
+		shouldSetBadge: false,
+		shouldShowBanner: true,
+		shouldShowList: true,
+	}),
+});
 
-let messagingModule: any = null;
-
-const getMessagingModule = () => {
-	if (isExpoGo) return null;
-
-	if (!messagingModule) {
-		try {
-			messagingModule = require("@react-native-firebase/messaging");
-		} catch (error) {
-			console.warn("Firebase messaging not available", error);
-			return null;
-		}
-	}
-
-	return messagingModule;
-};
-
-const getMessagingInstance = () => {
-	const module = getMessagingModule();
-	if (!module) return null;
-
-	try {
-		return module.getMessaging();
-	} catch (error) {
-		console.warn("Failed to initialize Firebase messaging", error);
-		return null;
-	}
-};
+const getProjectId = () => Constants.expoConfig?.extra?.eas?.projectId ?? Constants.easConfig?.projectId;
 
 export const requestNotificationPermission = async () => {
-	const module = getMessagingModule();
-	const messaging = getMessagingInstance();
-	if (!module || !messaging) return null;
-
 	try {
-		const authStatus = await module.requestPermission(messaging);
+		if (!Device.isDevice) {
+			console.warn("Push notifications require a physical device.");
+			return null;
+		}
 
-		const enabled = authStatus === module.AuthorizationStatus.AUTHORIZED || authStatus === module.AuthorizationStatus.PROVISIONAL;
+		if (Platform.OS === "android") {
+			await Notifications.setNotificationChannelAsync("default", {
+				name: "default",
+				importance: Notifications.AndroidImportance.MAX,
+				vibrationPattern: [0, 250, 250, 250],
+				lightColor: "#FF231F7C",
+			});
+		}
 
-		if (!enabled) return null;
+		const { status: existingStatus } = await Notifications.getPermissionsAsync();
+		let finalStatus = existingStatus;
 
-		await module.registerDeviceForRemoteMessages(messaging);
+		if (existingStatus !== "granted") {
+			const { status } = await Notifications.requestPermissionsAsync();
+			finalStatus = status;
+		}
 
-		const token = await module.getToken(messaging);
-		return token;
+		if (finalStatus !== "granted") return null;
+
+		const projectId = getProjectId();
+		if (!projectId) {
+			console.warn("Expo push token requires an EAS project ID.");
+			return null;
+		}
+
+		const token = await Notifications.getExpoPushTokenAsync({ projectId });
+		return token.data;
 	} catch (error) {
 		console.warn("Notification permission failed", error);
 		return null;
@@ -54,32 +55,27 @@ export const requestNotificationPermission = async () => {
 };
 
 export const setupNotificationListeners = (onTokenRefreshSync: (token: string) => void) => {
-	const module = getMessagingModule();
-	const messaging = getMessagingInstance();
-	if (!module || !messaging) return () => {};
-
-	let unsubscribeOnMessage = () => {};
-	let unsubscribeOnTokenRefresh = () => {};
-
 	try {
-		unsubscribeOnMessage = module.onMessage(messaging, async (remoteMessage: any) => {
-			console.log("📩 Foreground notification:", remoteMessage);
+		const notificationSubscription = Notifications.addNotificationReceivedListener((notification) => {
+			console.log("Foreground notification:", notification);
 		});
 
-		unsubscribeOnTokenRefresh = module.onTokenRefresh(messaging, (token: string) => {
-			console.log("🔄 FCM token refreshed:", token);
-			onTokenRefreshSync(token);
+		const responseSubscription = Notifications.addNotificationResponseReceivedListener((response) => {
+			console.log("Notification response:", response);
 		});
 
-		module.setBackgroundMessageHandler(messaging, async (remoteMessage: any) => {
-			console.log("🌙 Background notification:", remoteMessage);
+		const tokenSubscription = Notifications.addPushTokenListener(async () => {
+			const token = await requestNotificationPermission();
+			if (token) onTokenRefreshSync(token);
 		});
+
+		return () => {
+			notificationSubscription.remove();
+			responseSubscription.remove();
+			tokenSubscription.remove();
+		};
 	} catch (error) {
 		console.warn("Failed to setup notification listeners", error);
+		return () => {};
 	}
-
-	return () => {
-		unsubscribeOnMessage?.();
-		unsubscribeOnTokenRefresh?.();
-	};
 };

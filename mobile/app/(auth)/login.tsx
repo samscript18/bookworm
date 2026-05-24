@@ -14,6 +14,7 @@ import { toast } from "@/lib/utils/toast";
 import { useAuthStore } from "@/store/useAuthStore";
 import { User } from "@/types/user/user";
 import { useThemeStore } from "@/store/useThemeStore";
+import { isGoogleSignInAvailable } from "@/lib/config/google";
 
 const Login = () => {
 	const router = useRouter();
@@ -189,25 +190,29 @@ const Login = () => {
 						)}
 					</TouchableOpacity>
 
-					<View className="flex-row items-center gap-4 my-6">
-						<View className="flex-1 h-[1px]" style={{ backgroundColor: theme.colors.divider }} />
-						<Text className="font-manrope text-center text-base" style={{ color: theme.colors.textSecondary }}>
-							Or continue with
-						</Text>
-						<View className="flex-1 h-[1px]" style={{ backgroundColor: theme.colors.divider }} />
-					</View>
+					{isGoogleSignInAvailable && (
+						<>
+							<View className="flex-row items-center gap-4 my-6">
+								<View className="flex-1 h-[1px]" style={{ backgroundColor: theme.colors.divider }} />
+								<Text className="font-manrope text-center text-base" style={{ color: theme.colors.textSecondary }}>
+									Or continue with
+								</Text>
+								<View className="flex-1 h-[1px]" style={{ backgroundColor: theme.colors.divider }} />
+							</View>
 
-					<TouchableOpacity
-						onPress={handleGoogleLogIn}
-						className="flex-row items-center justify-center rounded-2xl p-4"
-						style={{ borderWidth: 1, borderColor: theme.colors.border, backgroundColor: theme.colors.surface }}
-						disabled={isSigningIn}
-					>
-						{isSigningIn ? <ActivityIndicator size={20} color={theme.colors.textSecondary} /> : <Ionicons name="logo-google" size={24} color={theme.colors.googleBrand} />}
-						<Text className="font-manrope ml-[10px] text-base" style={{ color: theme.colors.textPrimary }}>
-							Google
-						</Text>
-					</TouchableOpacity>
+							<TouchableOpacity
+								onPress={handleGoogleLogIn}
+								className="flex-row items-center justify-center rounded-2xl p-4"
+								style={{ borderWidth: 1, borderColor: theme.colors.border, backgroundColor: theme.colors.surface }}
+								disabled={isSigningIn}
+							>
+								{isSigningIn ? <ActivityIndicator size={20} color={theme.colors.textSecondary} /> : <Ionicons name="logo-google" size={24} color={theme.colors.googleBrand} />}
+								<Text className="font-manrope ml-[10px] text-base" style={{ color: theme.colors.textPrimary }}>
+									Google
+								</Text>
+							</TouchableOpacity>
+						</>
+					)}
 
 					<Text className="font-manrope mt-20 text-center text-base" style={{ color: theme.colors.textSecondary }}>
 						Don't have an account?{" "}

@@ -9,6 +9,7 @@ import { useMutation } from "@tanstack/react-query";
 import { toast } from "@/lib/utils/toast";
 import { User } from "@/types/user/user";
 import { useThemeStore } from "@/store/useThemeStore";
+import { isGoogleSignInAvailable } from "@/lib/config/google";
 
 const SignUpOption = () => {
 	const router = useRouter();
@@ -85,26 +86,28 @@ const SignUpOption = () => {
 					</View>
 				</TouchableOpacity>
 
-				<TouchableOpacity onPress={handleGoogleSignUp} className="rounded-3xl p-5" style={{ borderWidth: 1, borderColor: theme.colors.border, backgroundColor: theme.colors.surface }} disabled={isSigningUp}>
-					<View className="flex-row items-center">
-						{isSigningUp ? (
-							<ActivityIndicator size={20} color={theme.colors.textSecondary} />
-						) : (
-							<View className="h-12 w-12 items-center justify-center rounded-2xl" style={{ backgroundColor: theme.colors.surfaceMuted }}>
-								<Ionicons name="logo-google" size={22} color={theme.colors.googleBrand} />
+				{isGoogleSignInAvailable && (
+					<TouchableOpacity onPress={handleGoogleSignUp} className="rounded-3xl p-5" style={{ borderWidth: 1, borderColor: theme.colors.border, backgroundColor: theme.colors.surface }} disabled={isSigningUp}>
+						<View className="flex-row items-center">
+							{isSigningUp ? (
+								<ActivityIndicator size={20} color={theme.colors.textSecondary} />
+							) : (
+								<View className="h-12 w-12 items-center justify-center rounded-2xl" style={{ backgroundColor: theme.colors.surfaceMuted }}>
+									<Ionicons name="logo-google" size={22} color={theme.colors.googleBrand} />
+								</View>
+							)}
+							<View className="ml-4 flex-1">
+								<Text className="font-manrope text-lg font-semibold" style={{ color: theme.colors.textPrimary }}>
+									Sign up with Google
+								</Text>
+								<Text className="font-manrope mt-1 text-sm" style={{ color: theme.colors.textSecondary }}>
+									Create your account faster with your Google profile
+								</Text>
 							</View>
-						)}
-						<View className="ml-4 flex-1">
-							<Text className="font-manrope text-lg font-semibold" style={{ color: theme.colors.textPrimary }}>
-								Sign up with Google
-							</Text>
-							<Text className="font-manrope mt-1 text-sm" style={{ color: theme.colors.textSecondary }}>
-								Create your account faster with your Google profile
-							</Text>
+							<Ionicons name="chevron-forward" size={20} color={theme.colors.textSecondary} />
 						</View>
-						<Ionicons name="chevron-forward" size={20} color={theme.colors.textSecondary} />
-					</View>
-				</TouchableOpacity>
+					</TouchableOpacity>
+				)}
 			</View>
 
 			<Text className="font-manrope mt-auto mb-8 text-center text-base" style={{ color: theme.colors.textSecondary }}>

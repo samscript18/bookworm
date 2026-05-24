@@ -12,6 +12,27 @@ export const publicApi: AxiosInstance = axios.create({
 	},
 });
 
+if (__DEV__) {
+	publicApi.interceptors.request.use((config) => {
+		const method = config.method?.toUpperCase() ?? "GET";
+		console.log(`[HTTP][public][request] ${method} ${config.baseURL ?? ""}${config.url ?? ""}`);
+		return config;
+	});
+	publicApi.interceptors.response.use(
+		(response) => {
+			const method = response.config.method?.toUpperCase() ?? "GET";
+			console.log(`[HTTP][public][response] ${response.status} ${method} ${response.config.baseURL ?? ""}${response.config.url ?? ""}`);
+			return response;
+		},
+		(error: AxiosError<AxiosErrorShape>) => {
+			const method = error.config?.method?.toUpperCase() ?? "GET";
+			const url = `${error.config?.baseURL ?? ""}${error.config?.url ?? ""}`;
+			console.log(`[HTTP][public][error] ${error.response?.status ?? "ERR"} ${method} ${url}`);
+			return Promise.reject(error);
+		},
+	);
+}
+
 export const authApi: AxiosInstance = axios.create({
 	baseURL: API_URL,
 	withCredentials: false,
@@ -27,6 +48,27 @@ export const authApi: AxiosInstance = axios.create({
 		return JSON.stringify(data);
 	},
 });
+
+if (__DEV__) {
+	authApi.interceptors.request.use((config) => {
+		const method = config.method?.toUpperCase() ?? "GET";
+		console.log(`[HTTP][auth][request] ${method} ${config.baseURL ?? ""}${config.url ?? ""}`);
+		return config;
+	});
+	authApi.interceptors.response.use(
+		(response) => {
+			const method = response.config.method?.toUpperCase() ?? "GET";
+			console.log(`[HTTP][auth][response] ${response.status} ${method} ${response.config.baseURL ?? ""}${response.config.url ?? ""}`);
+			return response;
+		},
+		(error: AxiosError<AxiosErrorShape>) => {
+			const method = error.config?.method?.toUpperCase() ?? "GET";
+			const url = `${error.config?.baseURL ?? ""}${error.config?.url ?? ""}`;
+			console.log(`[HTTP][auth][error] ${error.response?.status ?? "ERR"} ${method} ${url}`);
+			return Promise.reject(error);
+		},
+	);
+}
 
 authApi.interceptors.request.use(
 	(config: InternalAxiosRequestConfig) => {

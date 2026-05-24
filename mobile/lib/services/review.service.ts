@@ -13,7 +13,7 @@ export const getHomeFeed = async (params: GetHomeFeedParams) => {
 				reviews: Review[];
 				nextCursor: string | null;
 			}>
-		>("reviews/home-feed", { params });
+		>("/reviews/home-feed", { params });
 
 		return response.data.data;
 	} catch (error) {
@@ -24,7 +24,7 @@ export const getHomeFeed = async (params: GetHomeFeedParams) => {
 
 export const getUserReviews = async (userId: string) => {
 	try {
-		const response = await authApi.get<ApiResponse<Review[]>>(`reviews/user/${userId}`);
+		const response = await authApi.get<ApiResponse<Review[]>>(`/reviews/user/${userId}`);
 
 		return response.data.data;
 	} catch (error) {

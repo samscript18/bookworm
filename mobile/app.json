@@ -56,7 +56,6 @@
     },
     "plugins": [
       "expo-router",
-      "@react-native-firebase/app",
       "./plugins/withModularHeaders",
       [
         "expo-splash-screen",
@@ -71,8 +70,10 @@
         }
       ],
       "expo-font",
+      "expo-notifications",
       "expo-web-browser",
-      "@react-native-google-signin/google-signin"
+      "@react-native-google-signin/google-signin",
+      "expo-secure-store"
     ],
     "experiments": {
       "typedRoutes": true,

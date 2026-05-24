@@ -1,12 +1,38 @@
 import { GOOGLE_IOS_CLIENT_ID, GOOGLE_WEB_CLIENT_ID } from "@/constants/env";
-import { GoogleSignin } from "@react-native-google-signin/google-signin";
+import Constants, { ExecutionEnvironment } from "expo-constants";
 
-GoogleSignin.configure({
-	webClientId: GOOGLE_WEB_CLIENT_ID,
-	iosClientId: GOOGLE_IOS_CLIENT_ID,
-});
+const isExpoGo = Constants.appOwnership === "expo" || Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
+
+export const isGoogleSignInAvailable = !isExpoGo;
+
+let googleSigninModule: any = null;
+
+const getGoogleSignin = () => {
+	if (!isGoogleSignInAvailable) return null;
+
+	if (!googleSigninModule) {
+		try {
+			googleSigninModule = require("@react-native-google-signin/google-signin").GoogleSignin;
+			googleSigninModule.configure({
+				webClientId: GOOGLE_WEB_CLIENT_ID,
+				iosClientId: GOOGLE_IOS_CLIENT_ID,
+			});
+		} catch (error) {
+			console.warn("Google Sign-In native module is not available", error);
+			return null;
+		}
+	}
+
+	return googleSigninModule;
+};
 
 export const signInWithGoogle = async () => {
+	const GoogleSignin = getGoogleSignin();
+
+	if (!GoogleSignin) {
+		throw new Error("Google Sign-In requires a development build and is not available in Expo Go.");
+	}
+
 	await GoogleSignin.hasPlayServices();
 
 	const userInfo = await GoogleSignin.signIn();
@@ -17,4 +43,11 @@ export const signInWithGoogle = async () => {
 		user: userInfo.data?.user,
 		idToken: tokens.idToken,
 	};
+};
+
+export const signOutFromGoogle = async () => {
+	const GoogleSignin = getGoogleSignin();
+	if (!GoogleSignin) return;
+
+	await GoogleSignin.signOut();
 };
