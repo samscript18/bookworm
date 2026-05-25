@@ -41,8 +41,28 @@ const swaggerSpec = {
 					followersCount: { type: "integer", example: 12 },
 					followingCount: { type: "integer", example: 20 },
 					reviewsCount: { type: "integer", example: 7 },
+					preferences: {
+						type: "object",
+						properties: {
+							pushNotifications: { type: "boolean", example: true },
+						},
+					},
 					createdAt: { type: "string", format: "date-time" },
 					updatedAt: { type: "string", format: "date-time" },
+				},
+			},
+			UserConnection: {
+				type: "object",
+				properties: {
+					_id: { type: "string", example: "67f4118d0d293f0845a84af1" },
+					firstName: { type: "string", example: "Jane" },
+					lastName: { type: "string", example: "Doe" },
+					userName: { type: "string", example: "janedoe" },
+					profileImage: { type: "string", format: "uri" },
+					bio: { type: "string", example: "Avid fantasy reader" },
+					followersCount: { type: "integer", example: 12 },
+					followingCount: { type: "integer", example: 20 },
+					isFollowing: { type: "boolean", example: true },
 				},
 			},
 			Book: {
@@ -59,6 +79,10 @@ const swaggerSpec = {
 					isbn: { type: "string", example: "9780756404741" },
 					genres: { type: "array", items: { type: "string" }, example: ["Fantasy"] },
 					tags: { type: "array", items: { type: "string" }, example: ["Popular", "Epic"] },
+					readingUrl: { type: "string", format: "uri", example: "https://www.gutenberg.org/files/1342/1342-0.txt" },
+					source: { type: "string", example: "gutendex" },
+					externalId: { type: "string", example: "gutendex:1342" },
+					language: { type: "string", example: "en" },
 					averageRating: { type: "number", example: 4.5 },
 					totalReviews: { type: "integer", example: 1280 },
 					createdAt: { type: "string", format: "date-time" },
@@ -197,6 +221,10 @@ const swaggerSpec = {
 					isbn: { type: "string" },
 					genres: { type: "array", items: { type: "string" } },
 					tags: { type: "array", items: { type: "string" } },
+					readingUrl: { type: "string", format: "uri" },
+					source: { type: "string", example: "gutendex" },
+					externalId: { type: "string", example: "gutendex:1342" },
+					language: { type: "string", example: "en" },
 				},
 			},
 			PostReviewRequest: {
@@ -262,6 +290,14 @@ const swaggerSpec = {
 					data: { $ref: "#/components/schemas/User" },
 				},
 			},
+			UserConnectionsSuccessResponse: {
+				type: "object",
+				properties: {
+					success: { type: "boolean", example: true },
+					message: { type: "string", example: "User connections retrieved successfully" },
+					data: { type: "array", items: { $ref: "#/components/schemas/UserConnection" } },
+				},
+			},
 			BookSuccessResponse: {
 				type: "object",
 				properties: {
@@ -280,6 +316,34 @@ const swaggerSpec = {
 						properties: {
 							books: { type: "array", items: { $ref: "#/components/schemas/Book" } },
 							nextCursor: { type: "string", format: "date-time", nullable: true },
+						},
+					},
+				},
+			},
+			BookSyncSuccessResponse: {
+				type: "object",
+				properties: {
+					success: { type: "boolean", example: true },
+					message: { type: "string", example: "Books synced successfully" },
+					data: {
+						type: "object",
+						properties: {
+							inserted: { type: "integer", example: 12 },
+							skipped: { type: "boolean", example: false },
+						},
+					},
+				},
+			},
+			BookSaveSuccessResponse: {
+				type: "object",
+				properties: {
+					success: { type: "boolean", example: true },
+					message: { type: "string", example: "Book added to library successfully" },
+					data: {
+						type: "object",
+						properties: {
+							saved: { type: "boolean", example: true },
+							savedBooksCount: { type: "integer", example: 8 },
 						},
 					},
 				},
@@ -718,6 +782,25 @@ const swaggerSpec = {
 				},
 			},
 		},
+		"/users/{userId}/connections": {
+			get: {
+				tags: ["Users"],
+				summary: "Get a user's followers or following",
+				description: "Returns searchable followers or following for the selected user, including whether the current authenticated user follows each returned user.",
+				security: [{ bearerAuth: [] }],
+				parameters: [
+					{ in: "path", name: "userId", required: true, schema: { type: "string" } },
+					{ in: "query", name: "type", schema: { type: "string", enum: ["followers", "following"], default: "followers" }, description: "Which connection list to fetch." },
+					{ in: "query", name: "search", schema: { type: "string" }, description: "Search by first name, last name, or username." },
+				],
+				responses: {
+					200: { description: "User connections fetched", content: { "application/json": { schema: { $ref: "#/components/schemas/UserConnectionsSuccessResponse" } } } },
+					401: { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } },
+					404: { description: "User not found", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } },
+					422: { description: "Validation error", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } },
+				},
+			},
+		},
 		"/books": {
 			post: {
 				tags: ["Books"],
@@ -831,6 +914,16 @@ const swaggerSpec = {
 				},
 			},
 		},
+		"/books/sync/external": {
+			post: {
+				tags: ["Books"],
+				summary: "Sync external public-domain books",
+				description: "Public endpoint. Fetches English plain-text books from Gutendex/Project Gutenberg and inserts only new books. The sync runs at most once per day.",
+				responses: {
+					200: { description: "External book sync completed or skipped", content: { "application/json": { schema: { $ref: "#/components/schemas/BookSyncSuccessResponse" } } } },
+				},
+			},
+		},
 		"/books/{bookId}": {
 			get: {
 				tags: ["Books"],
@@ -840,6 +933,21 @@ const swaggerSpec = {
 				responses: {
 					200: { description: "Book fetched", content: { "application/json": { schema: { $ref: "#/components/schemas/BookSuccessResponse" } } } },
 					404: { description: "Book not found", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } },
+				},
+			},
+		},
+		"/books/{bookId}/save": {
+			post: {
+				tags: ["Books"],
+				summary: "Add a book to the current user's library",
+				description: "Adds the book to saved books without toggling it off if it is already saved. Used when a user starts reading a book.",
+				security: [{ bearerAuth: [] }],
+				parameters: [{ in: "path", name: "bookId", required: true, schema: { type: "string" } }],
+				responses: {
+					200: { description: "Book added to library", content: { "application/json": { schema: { $ref: "#/components/schemas/BookSaveSuccessResponse" } } } },
+					401: { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } },
+					404: { description: "Book or user not found", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } },
+					422: { description: "Validation error", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } },
 				},
 			},
 		},

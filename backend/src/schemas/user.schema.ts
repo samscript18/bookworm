@@ -27,3 +27,8 @@ export const fcmTokenSchema = z.object({
 export const getProfileSchema = z.object({
 	userId: z.string().optional(),
 });
+
+export const getUserConnectionsSchema = z.object({
+	type: z.enum(["followers", "following"]).default("followers"),
+	search: z.string().optional(),
+});

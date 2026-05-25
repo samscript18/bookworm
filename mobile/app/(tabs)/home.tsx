@@ -11,7 +11,7 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 import { addCommentToReview, getHomeFeed, getReviewComments } from "@/lib/services/review.service";
 import ReviewCard from "@/components/ui/review-card";
 import { TrendingBookSkeleton, ReviewSkeleton } from "@/components/ui/skeleton";
-import { ErrorBanner } from "@/components/ui/error-message";
+import { ErrorBanner, ErrorMessage } from "@/components/ui/error-message";
 import { getNotificationsUnreadCount } from "@/lib/services/notification.service";
 import ActionSheet, { ActionSheetRef } from "react-native-actions-sheet";
 import { Comment } from "@/types/comment/comment";
@@ -66,6 +66,8 @@ const HomeFeed = () => {
 		hasNextPage,
 		isFetchingNextPage,
 		isRefetching,
+		isLoading: isLoadingHomeFeed,
+		error: homeFeedError,
 		refetch: refetchHomeFeed,
 	} = useInfiniteQuery({
 		queryKey: ["home-feed"],
@@ -372,25 +374,47 @@ const HomeFeed = () => {
 		<SafeAreaView className="flex-1" style={{ backgroundColor: theme.colors.background }} edges={["top"]}>
 			<FlatList
 				ref={listRef}
-				data={reviews}
+				data={isLoadingHomeFeed && reviews.length === 0 ? ([{ _id: "review-skeleton-1" }, { _id: "review-skeleton-2" }, { _id: "review-skeleton-3" }] as any) : reviews}
 				keyExtractor={keyExtractor}
-				renderItem={renderItem}
-				// refreshControl={
-				// 	<RefreshControl
-				// 		refreshing={isRefetching || isRefetchingTrendingBooks}
-				// 		onRefresh={async () => {
-				// 			await refetchTrending();
-				// 			await refetchHomeFeed();
-				// 		}}
-				// 		colors={[theme.colors.primary]}
-				// 		tintColor={theme.colors.primary}
-				// 	/>
-				// }
+				renderItem={({ item }) =>
+					isLoadingHomeFeed && reviews.length === 0 ? (
+						<View className="px-4">
+							<ReviewSkeleton />
+						</View>
+					) : (
+						renderItem({ item })
+					)
+				}
+				refreshControl={
+					<RefreshControl
+						refreshing={isRefetching || isRefetchingTrendingBooks}
+						onRefresh={async () => {
+							await Promise.all([refetchTrending(), refetchHomeFeed()]);
+						}}
+						colors={[theme.colors.primary]}
+						tintColor={theme.colors.primary}
+					/>
+				}
 				onEndReached={() => {
 					if (hasNextPage) fetchNextPage();
 				}}
 				onEndReachedThreshold={0.5}
 				ListHeaderComponent={listHeader}
+				ListEmptyComponent={
+					homeFeedError ? (
+						<ErrorMessage message="Your feed could not be loaded. Pull down or tap below to try again." onRetry={() => refetchHomeFeed()} />
+					) : (
+						<View className="items-center px-8 pt-16">
+							<Ionicons name="chatbubbles-outline" size={64} color={theme.colors.textMuted} />
+							<Text className="font-manrope text-base font-bold mt-4 text-center" style={{ color: theme.colors.textPrimary }}>
+								No reviews yet
+							</Text>
+							<Text className="font-manrope text-sm mt-2 text-center" style={{ color: theme.colors.textSecondary }}>
+								Follow readers or save books to start seeing community reviews.
+							</Text>
+						</View>
+					)
+				}
 				ListFooterComponent={isFetchingNextPage ? <ReviewSkeleton /> : <View className="h-4" />}
 				initialNumToRender={6}
 				maxToRenderPerBatch={6}

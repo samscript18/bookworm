@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { View, Text, ScrollView, Image, TouchableOpacity, ActivityIndicator, Platform } from "react-native";
+import React, { useEffect, useState } from "react";
+import { View, Text, ScrollView, Image, TouchableOpacity, ActivityIndicator, Platform, RefreshControl } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -10,7 +10,10 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { logout } from "@/lib/services/auth.service";
 import { STORAGE_KEYS } from "@/constants/storageKeys";
 import { getSecureItem } from "@/lib/config/secure-storage";
-import { getProfile } from "@/lib/services/user.service";
+import { getProfile, updatePreferences } from "@/lib/services/user.service";
+import { toast } from "@/lib/utils/toast";
+import { ErrorBanner } from "@/components/ui/error-message";
+import { SettingsProfileSkeleton } from "@/components/ui/skeleton";
 
 const SettingsScreen = () => {
 	const router = useRouter();
@@ -28,10 +31,30 @@ const SettingsScreen = () => {
 		},
 	});
 
-	const { isFetching: isFetchingProfile, data: profile } = useQuery({
+	const { isFetching: isFetchingProfile, isRefetching, data: profile, error: profileError, refetch } = useQuery({
 		queryKey: ["profile"],
 		queryFn: () => getProfile(),
 	});
+
+	useEffect(() => {
+		if (typeof profile?.preferences?.pushNotifications === "boolean") {
+			setPushEnabled(profile.preferences.pushNotifications);
+		}
+	}, [profile?.preferences?.pushNotifications]);
+
+	const { mutate: _updatePreferences, isPending: isUpdatingPreferences } = useMutation({
+		mutationKey: ["update-preferences"],
+		mutationFn: updatePreferences,
+		onError: () => {
+			setPushEnabled((value) => !value);
+			toast.error("Failed to update notification settings");
+		},
+	});
+
+	const handlePushToggle = (value: boolean) => {
+		setPushEnabled(value);
+		_updatePreferences({ pushNotifications: value });
+	};
 
 	return (
 		<SafeAreaView className="flex-1" style={{ backgroundColor: theme.colors.background }} edges={["top"]}>
@@ -44,24 +67,29 @@ const SettingsScreen = () => {
 				</Text>
 			</View>
 
-			<ScrollView showsVerticalScrollIndicator={false} className="px-4">
-				<View className="flex-row items-center py-6 border-b mb-4" style={{ borderBottomColor: isDark ? theme.colors.accentSurface : theme.colors.inputBorder }}>
-					<Image source={{ uri: profile?.profileImage }} className="w-16 h-16 rounded-full mr-4" />
-					<View>
-						<Text className="font-manrope text-lg font-bold" style={{ color: theme.colors.textPrimary }}>
-							{profile?.firstName} {profile?.lastName}
-						</Text>
-						<Text className="font-manrope mb-1" style={{ color: theme.colors.textSecondary }}>
-							{profile?.email}
-						</Text>
-						<TouchableOpacity className="flex-row items-center" onPress={() => router.push("/edit-profile")}>
-							<Text className="font-manrope font-semibold mr-1" style={{ color: theme.colors.primary }}>
-								Edit profile
+			<ScrollView showsVerticalScrollIndicator={false} className="px-4" refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} colors={[theme.colors.primary]} tintColor={theme.colors.primary} />}>
+				{profileError && <ErrorBanner message="Profile details could not be refreshed. Pull down to try again." onDismiss={() => refetch()} />}
+				{isFetchingProfile && !profile ? (
+					<SettingsProfileSkeleton />
+				) : (
+					<View className="flex-row items-center p-4 rounded-2xl my-5" style={{ backgroundColor: theme.colors.surface, borderWidth: 1, borderColor: theme.colors.border }}>
+						<Image source={{ uri: profile?.profileImage }} className="w-16 h-16 rounded-full mr-4" />
+						<View>
+							<Text className="font-manrope text-lg font-bold" style={{ color: theme.colors.textPrimary }}>
+								{profile?.firstName} {profile?.lastName}
 							</Text>
-							<Ionicons name="chevron-forward" size={14} color={theme.colors.primary} />
-						</TouchableOpacity>
+							<Text className="font-manrope mb-1" style={{ color: theme.colors.textSecondary }}>
+								{profile?.email}
+							</Text>
+							<TouchableOpacity className="flex-row items-center" onPress={() => router.push("/edit-profile")}>
+								<Text className="font-manrope font-semibold mr-1" style={{ color: theme.colors.primary }}>
+									Edit profile
+								</Text>
+								<Ionicons name="chevron-forward" size={14} color={theme.colors.primary} />
+							</TouchableOpacity>
+						</View>
 					</View>
-				</View>
+				)}
 
 				<Section title="Account">
 					<SettingRow icon="mail-outline" title="Email Address" rightText={profile?.email} />
@@ -70,7 +98,7 @@ const SettingsScreen = () => {
 				</Section>
 
 				<Section title="Notifications">
-					<SettingRow icon="notifications-outline" title="Push Notifications" type="switch" value={pushEnabled} onValueChange={setPushEnabled} />
+					<SettingRow icon="notifications-outline" title="Push Notifications" type="switch" value={pushEnabled} onValueChange={handlePushToggle} disabled={isUpdatingPreferences} />
 					<SettingRow icon="mail-unread-outline" title="Email Notifications" type="switch" value={emailEnabled} onValueChange={setEmailEnabled} />
 				</Section>
 

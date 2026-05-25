@@ -132,12 +132,27 @@ export default function Profile() {
 							{ label: "Followers", value: profile.followersCount },
 							{ label: "Following", value: profile.followingCount },
 						].map((item) => (
-							<View key={item.label} className="items-center">
+							<TouchableOpacity
+								key={item.label}
+								className="items-center px-4 py-2 rounded-2xl"
+								activeOpacity={item.label === "Reviews" ? 1 : 0.75}
+								onPress={() => {
+									if (item.label === "Reviews") return;
+									router.push({
+										pathname: "/connections",
+										params: {
+											userId: profileId,
+											initialTab: item.label.toLowerCase(),
+											userName: profile.userName,
+										},
+									});
+								}}
+							>
 								<Text className="font-manrope text-xl font-bold" style={{ color: theme.colors.textPrimary }}>
 									{item.value ?? 0}
 								</Text>
 								<Text style={{ color: theme.colors.textSecondary }}>{item.label}</Text>
-							</View>
+							</TouchableOpacity>
 						))}
 					</View>
 				</>

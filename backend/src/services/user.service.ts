@@ -19,6 +19,29 @@ export class UserService {
 		return { ...returnedUser, isFollowing: !!isFollowing };
 	}
 
+	static async getUserConnections(currentUserId: string, userId: string, type: "followers" | "following", search?: string) {
+		const user = await User.findById(userId).select(type);
+		if (!user) throw new NotFoundException("User not found", ErrorCode.NOT_FOUND);
+
+		const ids = type === "followers" ? user.followers : user.following;
+		const query: any = { _id: { $in: ids } };
+
+		if (search?.trim()) {
+			const value = search.trim();
+			query.$or = [{ firstName: { $regex: value, $options: "i" } }, { lastName: { $regex: value, $options: "i" } }, { userName: { $regex: value, $options: "i" } }];
+		}
+
+		const currentUser = await User.findById(currentUserId).select("following").lean();
+		const followingIds = new Set((currentUser?.following ?? []).map((id) => id.toString()));
+
+		const users = await User.find(query).select("firstName lastName userName profileImage bio followersCount followingCount").sort({ userName: 1 }).lean();
+
+		return users.map((connection) => ({
+			...connection,
+			isFollowing: followingIds.has(connection._id.toString()),
+		}));
+	}
+
 	static async editUser(userId: string, data: Partial<IUser>) {
 		const user = await User.findByIdAndUpdate(userId, data, { returnDocument: "after" });
 		if (!user) throw new NotFoundException("User not found", ErrorCode.NOT_FOUND);

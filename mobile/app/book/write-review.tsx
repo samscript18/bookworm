@@ -36,7 +36,10 @@ export default function WriteReview() {
 		mutationKey: ["add-review"],
 		mutationFn: ({ bookId, data }: AddReviewType) => addReview(bookId, data),
 		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["book", params.bookId] });
+			queryClient.invalidateQueries({ queryKey: ["book-reviews", params.bookId] });
 			queryClient.invalidateQueries({ queryKey: ["home-feed"] });
+			queryClient.invalidateQueries({ queryKey: ["trending-books"] });
 			toast.success("Review submitted successfully!");
 			router.replace("/(tabs)/home");
 		},

@@ -20,6 +20,10 @@ export const createBook = asyncHandler(async (req: Request, res: Response) => {
 		isbn?: string;
 		genres?: string[];
 		tags?: string[];
+		readingUrl?: string;
+		source?: string;
+		externalId?: string;
+		language?: string;
 	} = {
 		title: parsed.data.title,
 		author: parsed.data.author,
@@ -33,6 +37,10 @@ export const createBook = asyncHandler(async (req: Request, res: Response) => {
 	if (parsed.data.isbn) data.isbn = parsed.data.isbn;
 	if (parsed.data.genres) data.genres = parsed.data.genres;
 	if (parsed.data.tags) data.tags = parsed.data.tags;
+	if (parsed.data.readingUrl) data.readingUrl = parsed.data.readingUrl;
+	if (parsed.data.source) data.source = parsed.data.source;
+	if (parsed.data.externalId) data.externalId = parsed.data.externalId;
+	if (parsed.data.language) data.language = parsed.data.language;
 
 	const book = await BookService.createBook(data);
 	res.status(201).json({ success: true, message: "Book created successfully", data: book });
@@ -75,6 +83,19 @@ export const reactToBook = asyncHandler(async (req: Request, res: Response) => {
 	res.json({ success: true, message: "Book saved successfully", data: result });
 });
 
+export const saveBookToLibrary = asyncHandler(async (req: Request, res: Response) => {
+	const bookId = req.params.bookId;
+
+	if (!bookId || typeof bookId !== "string") throw new UnprocessableEntity("Invalid book ID", ErrorCode.UNPROCESSABLE_ENTITY, {});
+
+	if (!req.user) throw new UnAuthorizedException("User not authenticated", ErrorCode.AUTH_REQUIRED);
+
+	const userId = req.user._id.toString();
+
+	const result = await BookService.saveBookToLibrary(bookId, userId);
+	res.json({ success: true, message: "Book added to library successfully", data: result });
+});
+
 export const getSavedBooks = asyncHandler(async (req: Request, res: Response) => {
 	const parsed = getSavedBooksSchema.safeParse(req.query);
 	if (!parsed.success) throw new UnprocessableEntity("Invalid query parameters", ErrorCode.UNPROCESSABLE_ENTITY, parsed.error);
@@ -95,4 +116,9 @@ export const getTrendingGenres = asyncHandler(async (req: Request, res: Response
 export const getAllGenres = asyncHandler(async (req: Request, res: Response) => {
 	const result = await BookService.getAllGenres();
 	res.json({ success: true, message: "All genres fetched successfully", data: result.genres, meta: result.meta });
+});
+
+export const syncExternalBooks = asyncHandler(async (req: Request, res: Response) => {
+	const result = await BookService.syncExternalBooks();
+	res.json({ success: true, message: result.skipped ? "Books already synced today" : "Books synced successfully", data: result });
 });

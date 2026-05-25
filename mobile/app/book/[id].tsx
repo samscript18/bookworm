@@ -40,6 +40,19 @@ const BookDetails = () => {
 		queryFn: () => getBookReviews(id),
 	});
 
+	const metadataTextColor = isDark ? "#8C93A4" : "#9CA3AF";
+
+	const renderMetaItem = (label: string, value?: string | number | null) => (
+		<View className="rounded-2xl px-4 py-3 mb-3" style={{ backgroundColor: theme.colors.surface, borderWidth: 1, borderColor: theme.colors.border }}>
+			<Text className="font-manrope text-xs font-semibold uppercase mb-1" style={{ color: metadataTextColor }}>
+				{label}
+			</Text>
+			<Text className="font-manrope text-sm font-semibold leading-5" style={{ color: theme.colors.textPrimary }} numberOfLines={label === "ISBN" ? 2 : undefined}>
+				{value || "Not available"}
+			</Text>
+		</View>
+	);
+
 	const renderDetails = () => (
 		<>
 			<View className="px-5 mt-3">
@@ -56,61 +69,17 @@ const BookDetails = () => {
 					</Text>
 				</TouchableOpacity>
 
-				<View className="flex-row justify-between mb-7">
-					<View className="w-[47%] flex-row items-center gap-x-2.5">
-						<Text className="font-manrope text-sm" style={{ color: isDark ? "#8C93A4" : "#9CA3AF" }}>
-							Pages:
-						</Text>
-						<Text className="font-manrope text-sm font-semibold" style={{ color: theme.colors.textPrimary }}>
-							{book?.pages}
-						</Text>
-					</View>
-					<View className="w-[47%] flex-row items-center gap-x-2.5">
-						<Text className="font-manrope text-sm" style={{ color: isDark ? "#8C93A4" : "#9CA3AF" }}>
-							Publisher:
-						</Text>
-						<Text className="font-manrope text-sm font-semibold" style={{ color: theme.colors.textPrimary }}>
-							{book?.publisher}
-						</Text>
-					</View>
-				</View>
-
-				<View className="flex-row justify-between mb-7">
-					<View className="w-[47%] flex-row items-center gap-x-2.5">
-						<Text className="font-manrope text-sm" style={{ color: isDark ? "#8C93A4" : "#9CA3AF" }}>
-							Published:
-						</Text>
-						<Text className="font-manrope text-sm font-semibold" style={{ color: theme.colors.textPrimary }}>
-							{book?.publishYear}
-						</Text>
-					</View>
-					<View className="w-[47%] flex-row items-center gap-x-2.5">
-						<Text className="font-manrope text-sm" style={{ color: isDark ? "#8C93A4" : "#9CA3AF" }}>
-							Language:
-						</Text>
-						<Text className="font-manrope text-sm font-semibold" style={{ color: theme.colors.textPrimary }}>
-							English
-						</Text>
-					</View>
-				</View>
-
 				<View className="mb-7">
-					<View className="w-full flex-row items-center gap-x-2.5 mb-7">
-						<Text className="font-manrope text-sm" style={{ color: isDark ? "#8C93A4" : "#9CA3AF" }}>
-							ISBN:
-						</Text>
-						<Text className="font-manrope text-sm font-semibold" style={{ color: theme.colors.textPrimary }}>
-							{book?.isbn}
-						</Text>
+					<View className="flex-row gap-x-3">
+						<View className="flex-1">{renderMetaItem("Pages", book?.pages)}</View>
+						<View className="flex-1">{renderMetaItem("Published", book?.publishYear)}</View>
 					</View>
-					<View className="w-full flex-row items-center gap-x-2.5">
-						<Text className="font-manrope text-sm" style={{ color: isDark ? "#8C93A4" : "#9CA3AF" }}>
-							Genre:
-						</Text>
-						<Text className="font-manrope text-sm font-semibold capitalize" style={{ color: theme.colors.textPrimary }}>
-							{book?.genres?.join(", ")}
-						</Text>
+					<View className="flex-row gap-x-3">
+						<View className="flex-1">{renderMetaItem("Language", book?.language ? book.language.toUpperCase() : "English")}</View>
+						<View className="flex-1">{renderMetaItem("Publisher", book?.publisher)}</View>
 					</View>
+					{renderMetaItem("ISBN", book?.isbn)}
+					{renderMetaItem("Genre", book?.genres?.join(", "))}
 				</View>
 
 				<Text className="font-manrope text-[18px] font-semibold mt-4 mb-8" style={{ color: theme.colors.textPrimary }}>
@@ -126,9 +95,13 @@ const BookDetails = () => {
 						))}
 					</>
 				) : reviewsError ? (
-					<ErrorMessage message="Failed to load reviews" onRetry={() => refetchReviews()} showRetry={false} />
+					<ErrorMessage message="Reviews are not loading right now." onRetry={() => refetchReviews()} showRetry={false} />
+				) : reviews?.length === 0 ? (
+					<Text className="font-manrope text-sm text-center py-8" style={{ color: theme.colors.textSecondary }}>
+						No reviews yet. Be the first to share what you think.
+					</Text>
 				) : (
-					reviews?.map((review) => <BookReviewCard key={review._id} {...review} />)
+					reviews?.map((review) => <BookReviewCard key={review._id} {...review} bookId={id} />)
 				)}
 			</View>
 		</>
@@ -143,9 +116,13 @@ const BookDetails = () => {
 					))}
 				</>
 			) : reviewsError ? (
-				<ErrorMessage message="Failed to load reviews" onRetry={() => refetchReviews()} showRetry={false} />
+				<ErrorMessage message="Reviews are not loading right now." onRetry={() => refetchReviews()} showRetry={false} />
+			) : reviews?.length === 0 ? (
+				<Text className="font-manrope text-sm text-center py-8" style={{ color: theme.colors.textSecondary }}>
+					No reviews yet. Be the first to share what you think.
+				</Text>
 			) : (
-				reviews?.map((review) => <BookReviewCard key={review._id} {...review} />)
+				reviews?.map((review) => <BookReviewCard key={review._id} {...review} bookId={id} />)
 			)}
 		</View>
 	);
@@ -159,7 +136,7 @@ const BookDetails = () => {
 	);
 
 	if (bookError) {
-		return <ErrorMessage message="Failed to load book details" onRetry={() => refetchBook()} />;
+		return <ErrorMessage message="This book could not be loaded. Please check your connection and try again." onRetry={() => refetchBook()} />;
 	}
 
 	if (isFetchingBook || !book) {
@@ -203,7 +180,19 @@ const BookDetails = () => {
 					</View>
 
 					<View className="flex-row justify-between w-full mt-6 mb-3 gap-x-4">
-						<TouchableOpacity className="flex-1 py-4 rounded-[16px] items-center" style={{ backgroundColor: theme.colors.primary }}>
+						<TouchableOpacity
+							className="flex-1 py-4 rounded-[16px] items-center"
+							style={{ backgroundColor: theme.colors.primary }}
+							onPress={() =>
+								router.push({
+									pathname: "/book/read",
+									params: {
+										bookId: book._id,
+										bookTitle: book.title,
+									},
+								})
+							}
+						>
 							<Text className="font-manrope text-white text-base font-bold">Read Book</Text>
 						</TouchableOpacity>
 						<TouchableOpacity

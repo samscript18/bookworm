@@ -12,7 +12,7 @@ const Onboarding = () => {
 	const router = useRouter();
 	const { theme } = useThemeStore();
 	const setHasCompletedOnboarding = useAuthStore((state) => state.setHasCompletedOnboarding);
-	const [currentIndex, setCurrentIndex] = useState(0);
+	const [currentIndex, setCurrentIndex] = useState<number>(0);
 	const flatListRef = useRef<FlatList>(null);
 
 	const onViewableItemsChanged = useRef(({ viewableItems }: { viewableItems: ViewToken[] }) => {

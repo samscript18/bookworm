@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, ScrollView, TextInput, TouchableOpacity, ActivityIndicator, FlatList, Image, RefreshControl } from "react-native";
+import { View, Text, ScrollView, TextInput, TouchableOpacity, FlatList, RefreshControl } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useThemeStore } from "@/store/useThemeStore";
@@ -7,15 +7,15 @@ import { getAllBooks, getAllGenres } from "@/lib/services/book.service";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import BookCard from "@/components/ui/book-card";
 import { useDebounce } from "@/hooks/useDebounce";
-import { GenreSkeleton } from "@/components/ui/skeleton";
-import { ErrorBanner } from "@/components/ui/error-message";
+import { BookGridSkeleton, BookSkeleton, GenreSkeleton } from "@/components/ui/skeleton";
+import { ErrorBanner, ErrorMessage } from "@/components/ui/error-message";
 import { ListHeaderProps } from "@/interfaces";
 
 const ListHeader = ({ theme, isDark, searchInput, setSearchInput, activeGenre, setActiveGenre, setParams, isFetchingGenres, genres, genresError, refetchGenres, viewMode, setViewMode }: ListHeaderProps) => {
 	return (
 		<View>
 			<View className="px-4 pt-6 pb-8 rounded-b-[30px]" style={{ backgroundColor: theme.colors.primary }}>
-				<Text className="font-manrope text-3xl font-bold text-white mb-4">Explore</Text>
+				<Text className="font-caveat text-4xl font-bold text-white mb-4">Explore</Text>
 				<View className="flex-row items-center p-3 rounded-2xl" style={{ backgroundColor: isDark ? "#141821" : "#FFFFFF" }}>
 					<Ionicons name="search" size={20} color={theme.colors.textSecondary} className="mr-2" />
 					<TextInput
@@ -101,6 +101,7 @@ const Search = () => {
 		fetchNextPage,
 		hasNextPage,
 		isFetchingNextPage,
+		isLoading: isLoadingBooks,
 		error: booksError,
 		refetch: refetchBooks,
 		isRefetching,
@@ -121,6 +122,7 @@ const Search = () => {
 	});
 
 	const books = data?.pages.flatMap((page) => page.books) ?? [];
+	const showInitialBookSkeleton = isLoadingBooks && books.length === 0;
 
 	useEffect(() => {
 		setParams((prev) => ({ ...prev, search: debouncedSearch }));
@@ -128,17 +130,27 @@ const Search = () => {
 
 	return (
 		<SafeAreaView className="flex-1" style={{ backgroundColor: theme.colors.background }} edges={["top"]}>
-			{booksError && <ErrorBanner message="Failed to load books" onDismiss={() => refetchBooks()} />}
+			{booksError && books.length > 0 && <ErrorBanner message="We could not refresh the book list. Tap to try again." onDismiss={() => refetchBooks()} />}
 			<View className="flex-row justify-between">
 				<FlatList
 					key={viewMode}
-					data={books}
+					data={showInitialBookSkeleton ? Array.from({ length: viewMode === "grid" ? 6 : 4 }, (_, index) => ({ _id: `skeleton-${index}` } as any)) : books}
 					keyExtractor={(item) => item._id}
-					renderItem={({ item }) => (
-						<View className={viewMode === "grid" ? `w-[48%]` : `w-full`}>
-							<BookCard book={item} viewMode={viewMode} />
-						</View>
-					)}
+					renderItem={({ item }) =>
+						showInitialBookSkeleton ? (
+							viewMode === "grid" ? (
+								<BookGridSkeleton />
+							) : (
+								<View className="px-4">
+									<BookSkeleton />
+								</View>
+							)
+						) : (
+							<View className={viewMode === "grid" ? `w-[48%]` : `w-full`}>
+								<BookCard book={item} viewMode={viewMode} />
+							</View>
+						)
+					}
 					refreshControl={
 						<RefreshControl
 							refreshing={isRefetching || isRefetchingGenres}
@@ -172,7 +184,22 @@ const Search = () => {
 							setViewMode={setViewMode}
 						/>
 					}
-					ListFooterComponent={isFetchingNextPage ? <ActivityIndicator /> : <View className="h-4" />}
+					ListEmptyComponent={
+						booksError ? (
+							<ErrorMessage message="Books are not loading right now. Check your connection and try again." onRetry={() => refetchBooks()} />
+						) : (
+							<View className="items-center px-8 pt-20">
+								<Ionicons name="search-outline" size={64} color={theme.colors.textMuted} />
+								<Text className="font-manrope text-base font-bold mt-4 text-center" style={{ color: theme.colors.textPrimary }}>
+									No books found
+								</Text>
+								<Text className="font-manrope text-sm mt-2 text-center" style={{ color: theme.colors.textSecondary }}>
+									Try a different title, author, or genre.
+								</Text>
+							</View>
+						)
+					}
+					ListFooterComponent={isFetchingNextPage ? <View className="px-4">{viewMode === "grid" ? <BookGridSkeleton /> : <BookSkeleton />}</View> : <View className="h-4" />}
 					numColumns={viewMode === "grid" ? 2 : 1}
 					columnWrapperStyle={viewMode === "grid" ? { paddingHorizontal: 16, justifyContent: "space-between" } : undefined}
 				/>

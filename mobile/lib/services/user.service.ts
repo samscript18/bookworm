@@ -2,7 +2,7 @@ import { ApiResponse } from "@/types/api";
 import { authApi } from "../config/axios-instance";
 import { AxiosErrorShape, errorHandler } from "../config/axios-error";
 import { ChangePasswordDto, EditProfileDto, fcmTokenDto, ReactToUserDto, UpdatePreferencesDto } from "@/types/user/user.dto";
-import { User } from "@/types/user/user";
+import { User, UserConnection } from "@/types/user/user";
 
 export const updateFcmToken = async (data: fcmTokenDto) => {
 	try {
@@ -81,6 +81,17 @@ export const reactToUser = async (data: ReactToUserDto) => {
 				isFollowing: boolean;
 			}>
 		>(`/users/${data.userId}/react`);
+
+		return response.data.data;
+	} catch (error) {
+		errorHandler(error as AxiosErrorShape | string);
+		throw error;
+	}
+};
+
+export const getUserConnections = async (userId: string, params: { type: "followers" | "following"; search?: string }) => {
+	try {
+		const response = await authApi.get<ApiResponse<UserConnection[]>>(`/users/${userId}/connections`, { params });
 
 		return response.data.data;
 	} catch (error) {

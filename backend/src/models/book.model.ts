@@ -12,6 +12,10 @@ export interface IBook extends Document {
 	isbn: string;
 	genres: string[];
 	tags: string[];
+	readingUrl?: string;
+	source?: string;
+	externalId?: string;
+	language?: string;
 	averageRating: number;
 	totalReviews: number;
 }
@@ -28,6 +32,10 @@ const BookSchema: Schema = new Schema(
 		isbn: { type: String, unique: true, sparse: true },
 		genres: { type: [String], set: toLowercaseArray },
 		tags: { type: [String], set: toLowercaseArray },
+		readingUrl: { type: String },
+		source: { type: String, index: true },
+		externalId: { type: String, unique: true, sparse: true },
+		language: { type: String },
 		averageRating: { type: Number, default: 0, min: 0, max: 5 },
 		totalReviews: { type: Number, default: 0 },
 	},
@@ -35,6 +43,7 @@ const BookSchema: Schema = new Schema(
 );
 
 BookSchema.index({ genres: 1, averageRating: -1 });
+BookSchema.index({ source: 1, externalId: 1 }, { unique: true, sparse: true });
 
 export const Book = mongoose.model<IBook>("Book", BookSchema);
 export type BookDocument = HydratedDocument<IBook>;

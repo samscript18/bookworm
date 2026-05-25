@@ -3,7 +3,7 @@ import { UnAuthorizedException, UnprocessableEntity } from "../exceptions/except
 import { ErrorCode } from "../exceptions/root";
 import { asyncHandler } from "../middleware/asyncHandler";
 import { UserService } from "../services/user.service";
-import { changePasswordSchema, editProfileSchema, fcmTokenSchema, updatePreferencesSchema, getProfileSchema } from "../schemas/user.schema";
+import { changePasswordSchema, editProfileSchema, fcmTokenSchema, updatePreferencesSchema, getProfileSchema, getUserConnectionsSchema } from "../schemas/user.schema";
 
 export const changePassword = asyncHandler(async (req: Request, res: Response) => {
 	const parsed = changePasswordSchema.safeParse(req.body);
@@ -28,6 +28,20 @@ export const getProfile = asyncHandler(async (req: Request, res: Response) => {
 
 	const result = await UserService.getUserById(currentUserId, userId);
 	res.json({ success: true, message: "User data retrieved successfully", data: result });
+});
+
+export const getUserConnections = asyncHandler(async (req: Request, res: Response) => {
+	const parsed = getUserConnectionsSchema.safeParse(req.query);
+	if (!parsed.success) throw new UnprocessableEntity("Validation error", ErrorCode.UNPROCESSABLE_ENTITY, parsed.error);
+
+	if (!req.user) throw new UnAuthorizedException("User not authenticated", ErrorCode.AUTH_REQUIRED);
+
+	const currentUserId = req.user._id.toString();
+	const userId = req.params.userId as string;
+	if (!userId) throw new UnprocessableEntity("User ID is required", ErrorCode.UNPROCESSABLE_ENTITY, {});
+
+	const result = await UserService.getUserConnections(currentUserId, userId, parsed.data.type, parsed.data.search);
+	res.json({ success: true, message: "User connections retrieved successfully", data: result });
 });
 
 export const editProfile = asyncHandler(async (req: Request, res: Response) => {

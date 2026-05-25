@@ -75,6 +75,17 @@ export const saveBook = async (bookId: string) => {
 	}
 };
 
+export const addBookToLibrary = async (bookId: string) => {
+	try {
+		const response = await authApi.post<ApiResponse<{ saved: boolean; savedBooksCount: number }>>(`/books/${bookId}/save`);
+
+		return response.data.data;
+	} catch (error) {
+		errorHandler(error as AxiosErrorShape | string);
+		throw error;
+	}
+};
+
 export const getAllGenres = async () => {
 	try {
 		const response = await authApi.get<ApiResponse<BookGenre[], PaginationMeta>>("/books/genres/all");

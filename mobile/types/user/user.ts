@@ -18,9 +18,14 @@ export type User = {
 	following: string[];
 	isFollowing: boolean;
 	followingCount: number;
+	preferences?: {
+		pushNotifications?: boolean;
+	};
 	reviewsCount: number;
 	savedBooks: string[];
 } & BaseModelType;
+
+export type UserConnection = Pick<User, "_id" | "firstName" | "lastName" | "userName" | "profileImage" | "bio" | "followersCount" | "followingCount" | "isFollowing">;
 
 export type EditProfileType = z.infer<typeof editProfileSchema>;
 

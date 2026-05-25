@@ -9,6 +9,10 @@ export type uploadBookDto = {
 	isbn?: string;
 	genres?: string[];
 	tags?: string[];
+	readingUrl?: string;
+	source?: string;
+	externalId?: string;
+	language?: string;
 };
 
 export type getBooksParams = {

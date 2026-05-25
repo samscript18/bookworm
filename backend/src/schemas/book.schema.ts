@@ -11,6 +11,10 @@ export const createBookSchema = z.object({
 	isbn: z.string().optional(),
 	genres: z.array(z.string()).optional(),
 	tags: z.array(z.string()).optional(),
+	readingUrl: z.string().url("Reading URL must be a valid URL").optional(),
+	source: z.string().optional(),
+	externalId: z.string().optional(),
+	language: z.string().optional(),
 });
 
 export const getBooksSchema = z.object({

@@ -10,6 +10,7 @@ interface SettingRowProps {
 	onValueChange?: (val: boolean) => void;
 	rightText?: string;
 	onPress?: () => void;
+	disabled?: boolean;
 }
 
 const Section = ({ title, children }: { title: string; children: React.ReactNode }) => {
@@ -24,7 +25,7 @@ const Section = ({ title, children }: { title: string; children: React.ReactNode
 	);
 };
 
-const SettingRow = ({ icon, title, type = "link", value, onValueChange, rightText, onPress }: SettingRowProps) => {
+const SettingRow = ({ icon, title, type = "link", value, onValueChange, rightText, onPress, disabled }: SettingRowProps) => {
 	const { theme, isDark } = useThemeStore();
 	const isSwitch = type === "switch";
 	const Container = isSwitch ? View : TouchableOpacity;
@@ -43,7 +44,7 @@ const SettingRow = ({ icon, title, type = "link", value, onValueChange, rightTex
 			)}
 
 			{isSwitch ? (
-				<Switch value={value} onValueChange={onValueChange} trackColor={{ false: theme.colors.buttonDisabled, true: theme.colors.primary }} thumbColor="white" />
+				<Switch disabled={disabled} value={value} onValueChange={onValueChange} trackColor={{ false: theme.colors.buttonDisabled, true: theme.colors.primary }} thumbColor="white" />
 			) : (
 				<Ionicons name="chevron-forward" size={20} color={theme.colors.divider} />
 			)}

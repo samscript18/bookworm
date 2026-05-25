@@ -10,6 +10,6 @@ export const authLimiter = rateLimit({
 
 export const strictAuthLimiter = rateLimit({
 	windowMs: 10 * 60 * 1000,
-	max: 15,
+	max: 70,
 	message: "Too many attempts. Please wait 10 minutes.",
 });

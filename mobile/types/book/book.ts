@@ -17,6 +17,10 @@ export type Book = {
 	isbn: string;
 	genres: string[];
 	tags: string[];
+	readingUrl?: string;
+	source?: string;
+	externalId?: string;
+	language?: string;
 	averageRating: number;
 	totalReviews: number;
 } & BaseModelType;

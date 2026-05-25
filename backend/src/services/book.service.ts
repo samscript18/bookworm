@@ -1,18 +1,101 @@
 import { QueryFilter } from "mongoose";
+import axios from "axios";
 import { NotFoundException } from "../exceptions/exceptions";
 import { ErrorCode } from "../exceptions/root";
 import { Book, BookDocument, IBook } from "../models/book.model";
 import { getPaginationData } from "../utils/helpers/helper";
 import { PaginationQuery } from "../types/pagination.type";
 import { User } from "../models/user.model";
+import { SyncState } from "../models/sync-state.model";
+
+const GUTENDEX_SYNC_KEY = "gutendex-books";
+const GUTENDEX_URL = "https://gutendex.com/books?languages=en&mime_type=text%2Fplain";
+const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+const DEFAULT_COVER_IMAGE = "https://www.gutenberg.org/gutenberg/pg-logo-129x80.png";
+
+type GutendexBook = {
+	id: number;
+	title?: string;
+	authors?: { name?: string }[];
+	summaries?: string[];
+	subjects?: string[];
+	bookshelves?: string[];
+	languages?: string[];
+	formats?: Record<string, string>;
+	download_count?: number;
+	copyright?: boolean;
+};
+
+type GutendexResponse = {
+	results?: GutendexBook[];
+};
+
+type NormalizedExternalBook = {
+	title: string;
+	author: string;
+	description: string;
+	coverImage: string;
+	publisher: string;
+	genres: string[];
+	tags: string[];
+	readingUrl: string;
+	source: string;
+	externalId: string;
+	language: string;
+	totalReviews: number;
+	averageRating: number;
+};
+
+const pickFormatUrl = (formats: Record<string, string> | undefined, matcher: (key: string) => boolean) => {
+	if (!formats) return undefined;
+
+	const entry = Object.entries(formats).find(([key, value]) => matcher(key.toLowerCase()) && typeof value === "string" && value.startsWith("http"));
+	return entry?.[1];
+};
+
+const normalizeGenre = (value: string) => value.split("--")[0]?.trim().toLowerCase();
+
+const normalizeGutendexBook = (book: GutendexBook): NormalizedExternalBook | null => {
+	const readingUrl = pickFormatUrl(book.formats, (key) => key.includes("text/plain"));
+	if (!book.id || !book.title || !readingUrl) return null;
+
+	const subjects = [...(book.subjects ?? []), ...(book.bookshelves ?? [])];
+	const genres = Array.from(new Set(subjects.map(normalizeGenre).filter((genre): genre is string => Boolean(genre)))).slice(0, 4);
+	const tags = Array.from(
+		new Set(
+			subjects
+				.flatMap((subject) => subject.split(/--|,|\./))
+				.map((tag) => tag.trim().toLowerCase())
+				.filter(Boolean),
+		),
+	).slice(0, 5);
+
+	return {
+		title: book.title,
+		author: book.authors?.map((author) => author.name).filter(Boolean).join(", ") || "Unknown Author",
+		description: book.summaries?.[0] || `A public-domain book from Project Gutenberg: ${book.title}.`,
+		coverImage: pickFormatUrl(book.formats, (key) => key.includes("image/jpeg")) ?? DEFAULT_COVER_IMAGE,
+		publisher: "Project Gutenberg",
+		genres: genres.length > 0 ? genres : ["classic"],
+		tags: tags.length > 0 ? tags : ["public domain", "classic"],
+		readingUrl,
+		source: "gutendex",
+		externalId: `gutendex:${book.id}`,
+		language: book.languages?.[0] ?? "en",
+		totalReviews: 0,
+		averageRating: 0,
+	};
+};
 
 export class BookService {
-	static async createBook(data: { title: string; author: string; coverImage: string; description: string; pages?: number; publisher?: string; publishYear?: number; isbn?: string; genres?: string[]; tags?: string[] }) {
+	static async createBook(data: { title: string; author: string; coverImage: string; description: string; pages?: number; publisher?: string; publishYear?: number; isbn?: string; genres?: string[]; tags?: string[]; readingUrl?: string; source?: string; externalId?: string; language?: string }) {
 		const book = await Book.create(data);
 		return book;
 	}
 
 	static async getAllBooks(query: { cursor?: string; limit: number; search?: string; genre?: string }) {
+		await this.syncExternalBooksSafely();
+
 		const _query: QueryFilter<IBook> = {};
 
 		if (query.search) {
@@ -41,6 +124,8 @@ export class BookService {
 	}
 
 	static async getTrendingBooks() {
+		await this.syncExternalBooksSafely();
+
 		const trendingBooks: BookDocument[] = await Book.aggregate([
 			{ $match: { totalReviews: { $gt: 0 } } },
 			{
@@ -99,11 +184,66 @@ export class BookService {
 		};
 	}
 
+	static async saveBookToLibrary(bookId: string, userId: string) {
+		const book = await Book.findById(bookId);
+		if (!book) throw new NotFoundException("Book not found", ErrorCode.NOT_FOUND);
+
+		const user = await User.findByIdAndUpdate(userId, { $addToSet: { savedBooks: book._id } }, { returnDocument: "after" }).select("savedBooks");
+		if (!user) throw new NotFoundException("User not found", ErrorCode.NOT_FOUND);
+
+		return {
+			saved: true,
+			savedBooksCount: user.savedBooks.length,
+		};
+	}
+
 	static async getSavedBooks(userId: string) {
-		const user = await User.findById(userId).select("savedBooks").populate("savedBooks", "title author description coverImage averageRating totalReviews");
+		const user = await User.findById(userId).select("savedBooks").populate("savedBooks", "title author description coverImage averageRating totalReviews readingUrl source externalId language");
 		if (!user) throw new NotFoundException("User not found", ErrorCode.NOT_FOUND);
 
 		return user.savedBooks;
+	}
+
+	static async syncExternalBooks() {
+		await Book.updateMany({ source: "gutendex", averageRating: 0, totalReviews: { $ne: 0 } }, { $set: { totalReviews: 0 } });
+
+		const syncState = await SyncState.findOne({ key: GUTENDEX_SYNC_KEY }).lean();
+		if (syncState && Date.now() - syncState.lastSyncedAt.getTime() < ONE_DAY_MS) {
+			return { inserted: 0, skipped: true };
+		}
+
+		const response = await axios.get<GutendexResponse>(GUTENDEX_URL, {
+			headers: { Accept: "application/json" },
+			timeout: 15000,
+		});
+
+		const payload = response.data;
+		const books = (payload.results ?? []).map(normalizeGutendexBook).filter((book): book is NormalizedExternalBook => Boolean(book));
+
+		if (books.length === 0) {
+			await SyncState.findOneAndUpdate({ key: GUTENDEX_SYNC_KEY }, { key: GUTENDEX_SYNC_KEY, lastSyncedAt: new Date(), metadata: { inserted: 0 } }, { upsert: true });
+			return { inserted: 0, skipped: false };
+		}
+
+		const existing = await Book.find({ externalId: { $in: books.map((book) => book.externalId) } }).select("externalId").lean();
+		const existingIds = new Set(existing.map((book) => book.externalId).filter(Boolean));
+		const newBooks = books.filter((book) => !existingIds.has(book.externalId));
+
+		if (newBooks.length > 0) {
+			await Book.insertMany(newBooks, { ordered: false });
+		}
+
+		await SyncState.findOneAndUpdate({ key: GUTENDEX_SYNC_KEY }, { key: GUTENDEX_SYNC_KEY, lastSyncedAt: new Date(), metadata: { inserted: newBooks.length } }, { upsert: true });
+
+		return { inserted: newBooks.length, skipped: false };
+	}
+
+	private static async syncExternalBooksSafely() {
+		try {
+			await this.syncExternalBooks();
+		} catch (error) {
+			console.warn("External book sync failed", error);
+		}
 	}
 
 	static async getAllGenres(page = 1, limit = 20) {

@@ -1,15 +1,17 @@
 import React, { useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
-import { Image, Pressable, Share, Text, TouchableOpacity, View } from "react-native";
+import { Alert, Image, Pressable, Share, Text, TouchableOpacity, View } from "react-native";
 import { StarRow } from "./star-row";
 import { useThemeStore } from "@/store/useThemeStore";
 import { Review } from "@/types/review/review";
 import { Link, useRouter } from "expo-router";
 import { getRelativeTime } from "@/lib/utils";
-import { reactToReview } from "@/lib/services/review.service";
+import { deleteReview, reactToReview } from "@/lib/services/review.service";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { saveBook } from "@/lib/services/book.service";
 import { useAuthStore } from "@/store/useAuthStore";
+import { reactToUser } from "@/lib/services/user.service";
+import { toast } from "@/lib/utils/toast";
 
 const ReviewCard = ({ review, isRefetching, onPressComment, highlight }: { review: Review; isRefetching: boolean; onPressComment?: (reviewId: string) => void; highlight?: boolean }) => {
 	const { theme } = useThemeStore();
@@ -18,6 +20,8 @@ const ReviewCard = ({ review, isRefetching, onPressComment, highlight }: { revie
 	const queryClient = useQueryClient();
 	const [expanded, setExpanded] = useState<boolean>(false);
 	const shouldTruncate = review.content.length > 200;
+	const isLiked = review.isLiked;
+	const isSaved = review.isSaved;
 
 	const { mutateAsync: _reactToReview, isPending: isReacting } = useMutation({
 		mutationKey: ["react-to-review", review._id],
@@ -118,15 +122,61 @@ const ReviewCard = ({ review, isRefetching, onPressComment, highlight }: { revie
 		},
 	});
 
+	const { mutate: _followUser } = useMutation({
+		mutationKey: ["follow-review-user", review.user._id],
+		mutationFn: reactToUser,
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["home-feed"] });
+			queryClient.invalidateQueries({ queryKey: ["profile"] });
+		},
+		onError: () => toast.error("Failed to update follow"),
+	});
+
+	const { mutate: _deleteReview, isPending: isDeletingReview } = useMutation({
+		mutationKey: ["delete-review", review._id],
+		mutationFn: deleteReview,
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["home-feed"] });
+			queryClient.invalidateQueries({ queryKey: ["user-reviews"] });
+			toast.success("Review deleted");
+		},
+		onError: () => toast.error("Failed to delete review"),
+	});
+
 	const handleShare = async (title: string, content: string) => {
-		await Share.share({
-			title: "Share Review",
-			message: `${title}\n\n${content}\n\nRead more: https://bookworm.onrender.com/review/${review._id}`,
-		});
+		try {
+			await Share.share({
+				title: `${review.user.userName}'s review of ${title}`,
+				message: `${title}\n\n${content}\n\nRead more: https://bookworm.onrender.com/review/${review._id}`,
+				url: `https://bookworm.onrender.com/review/${review._id}`,
+			});
+		} catch {
+			toast.error("Unable to open share sheet");
+		}
 	};
 
-	const isLiked = review.isLiked;
-	const isSaved = review.isSaved;
+	const openReviewActions = () => {
+		const isOwnReview = review.user._id === user?._id;
+
+		Alert.alert(review.user.userName, "Choose an action", [
+			{ text: isSaved ? "Remove book from library" : "Save book to library", onPress: () => _saveBook(review.book._id) },
+			{ text: "Share review", onPress: () => handleShare(review.book.title, review.content) },
+			...(isOwnReview
+				? [
+						{
+							text: "Delete review",
+							style: "destructive" as const,
+							onPress: () =>
+								Alert.alert("Delete review?", "This cannot be undone.", [
+									{ text: "Cancel", style: "cancel" },
+									{ text: "Delete", style: "destructive", onPress: () => _deleteReview(review._id) },
+								]),
+						},
+					]
+				: [{ text: "Follow user", onPress: () => _followUser({ userId: review.user._id }) }]),
+			{ text: "Cancel", style: "cancel" },
+		]);
+	};
 
 	return (
 		<View
@@ -179,7 +229,9 @@ const ReviewCard = ({ review, isRefetching, onPressComment, highlight }: { revie
 					</View>
 				</View>
 
-				<Ionicons name="ellipsis-horizontal" size={20} color={theme.colors.textSecondary} />
+				<TouchableOpacity onPress={openReviewActions} disabled={isDeletingReview} className="w-10 h-10 items-center justify-center rounded-full">
+					<Ionicons name="ellipsis-horizontal" size={20} color={theme.colors.textSecondary} />
+				</TouchableOpacity>
 			</View>
 
 			<Link href={`/book/${review.book._id}`} asChild>

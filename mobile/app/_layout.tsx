@@ -38,10 +38,12 @@ export default function RootLayout() {
 					<Stack.Screen name="(auth)" options={{ animation: "fade" }} />
 					<Stack.Screen name="(tabs)" options={{ animation: "fade" }} />
 					<Stack.Screen name="book/[id]" options={{ animation: "fade" }} />
+					<Stack.Screen name="book/read" options={{ animation: "fade" }} />
 					<Stack.Screen name="book/write-review" options={{ animation: "fade" }} />
 					<Stack.Screen name="notifications" options={{ animation: "fade" }} />
 					<Stack.Screen name="settings" options={{ animation: "fade" }} />
 					<Stack.Screen name="edit-profile" options={{ animation: "fade" }} />
+					<Stack.Screen name="connections" options={{ animation: "fade" }} />
 					<Stack.Screen name="change-password" options={{ animation: "fade" }} />
 				</Stack>
 			</AppProvider>

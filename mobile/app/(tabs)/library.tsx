@@ -1,37 +1,123 @@
-import React, { useState } from "react";
-import { View, Text, ScrollView, Image, TouchableOpacity } from "react-native";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { Alert, View, Text, ScrollView, Image, TouchableOpacity, RefreshControl } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useThemeStore } from "@/store/useThemeStore";
-import { useQuery } from "@tanstack/react-query";
-import { getSavedBooks } from "@/lib/services/book.service";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { getSavedBooks, saveBook } from "@/lib/services/book.service";
 import { ErrorMessage } from "@/components/ui/error-message";
-import { Skeleton } from "@/components/ui/skeleton";
+import { LibraryBookSkeleton } from "@/components/ui/skeleton";
+import { STORAGE_KEYS } from "@/constants/storageKeys";
+import { getSecureItem, setSecureItem } from "@/lib/config/secure-storage";
+import { Book } from "@/types/book/book";
+
+type LibraryTab = "Reading" | "To Read" | "Completed";
+type LibraryStatus = "reading" | "to-read" | "completed";
+type LibraryStatusMap = Record<string, LibraryStatus>;
+type ProgressMap = Record<string, number>;
+
+const tabToStatus: Record<LibraryTab, LibraryStatus> = {
+	Reading: "reading",
+	"To Read": "to-read",
+	Completed: "completed",
+};
+
+const readJsonMap = async <T extends Record<string, unknown>>(key: string): Promise<T> => {
+	const raw = await getSecureItem(key);
+	if (!raw) return {} as T;
+
+	try {
+		return JSON.parse(raw) as T;
+	} catch {
+		return {} as T;
+	}
+};
 
 export default function Library() {
+	const router = useRouter();
+	const queryClient = useQueryClient();
 	const { theme, isDark } = useThemeStore();
-	const [activeTab, setActiveTab] = useState<"Reading" | "To Read" | "Completed">("To Read");
+	const [activeTab, setActiveTab] = useState<LibraryTab>("Reading");
+	const [libraryStatus, setLibraryStatus] = useState<LibraryStatusMap>({});
+	const [readingProgress, setReadingProgress] = useState<ProgressMap>({});
 
 	const {
 		isFetching: isFetchingSavedBooks,
 		data: savedBooks,
 		error: savedBooksError,
 		refetch: refetchSavedBooks,
+		isRefetching,
 	} = useQuery({
 		queryKey: ["saved-books"],
 		queryFn: () => getSavedBooks(),
 	});
 
-	const displayedBooks = savedBooks ?? [];
+	const { mutate: removeSavedBook } = useMutation({
+		mutationFn: saveBook,
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["saved-books"] });
+		},
+	});
+
+	const loadLibraryState = useCallback(async () => {
+		const [statusMap, progressMap] = await Promise.all([readJsonMap<LibraryStatusMap>(STORAGE_KEYS.LIBRARY_STATUS), readJsonMap<ProgressMap>(STORAGE_KEYS.READING_PROGRESS)]);
+		setLibraryStatus(statusMap);
+		setReadingProgress(progressMap);
+	}, []);
+
+	useEffect(() => {
+		loadLibraryState();
+	}, [loadLibraryState]);
+
+	const setBookStatus = async (bookId: string, status: LibraryStatus) => {
+		const nextStatus = { ...libraryStatus, [bookId]: status };
+		const nextProgress = { ...readingProgress };
+
+		if (status === "to-read") nextProgress[bookId] = 0;
+		if (status === "completed") nextProgress[bookId] = 100;
+
+		setLibraryStatus(nextStatus);
+		setReadingProgress(nextProgress);
+
+		await Promise.all([setSecureItem(STORAGE_KEYS.LIBRARY_STATUS, JSON.stringify(nextStatus)), setSecureItem(STORAGE_KEYS.READING_PROGRESS, JSON.stringify(nextProgress))]);
+	};
+
+	const booksByStatus = useMemo(() => {
+		const books = savedBooks ?? [];
+		return books.filter((book) => (libraryStatus[book._id] ?? "to-read") === tabToStatus[activeTab]);
+	}, [activeTab, libraryStatus, savedBooks]);
+
+	const displayedBooks = booksByStatus;
+
+	const openReader = async (book: Book) => {
+		await setBookStatus(book._id, "reading");
+		router.push({
+			pathname: "/book/read",
+			params: {
+				bookId: book._id,
+				bookTitle: book.title,
+			},
+		});
+	};
+
+	const openBookActions = (book: Book) => {
+		Alert.alert(book.title, "Update this book in your library.", [
+			{ text: "Start reading", onPress: () => openReader(book) },
+			{ text: "Move to To Read", onPress: () => setBookStatus(book._id, "to-read") },
+			{ text: "Mark completed", onPress: () => setBookStatus(book._id, "completed") },
+			{ text: "Remove from library", style: "destructive", onPress: () => removeSavedBook(book._id) },
+			{ text: "Cancel", style: "cancel" },
+		]);
+	};
 
 	return (
 		<SafeAreaView className="flex-1" style={{ backgroundColor: theme.colors.background }} edges={["top"]}>
 			<View className="flex-row justify-between items-center px-4 pt-4 mb-4">
-				<Text className="font-manrope text-2xl font-bold" style={{ color: theme.colors.textPrimary }}>
+				<Text className="font-caveat text-4xl font-bold" style={{ color: theme.colors.textPrimary }}>
 					My Library
 				</Text>
-
-				<TouchableOpacity activeOpacity={0.8}>
+				<TouchableOpacity activeOpacity={0.8} onPress={() => router.push("/(tabs)/search")}>
 					<Ionicons name="add-circle" size={30} color={theme.colors.primary} />
 				</TouchableOpacity>
 			</View>
@@ -66,17 +152,26 @@ export default function Library() {
 				})}
 			</View>
 
-			<ScrollView showsVerticalScrollIndicator={false} className="px-4 mt-1">
+			<ScrollView
+				showsVerticalScrollIndicator={false}
+				className="px-4 mt-1"
+				refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetchSavedBooks} colors={[theme.colors.primary]} tintColor={theme.colors.primary} />}
+			>
 				{savedBooksError ? (
-					<ErrorMessage message="Failed to load saved books" onRetry={refetchSavedBooks} />
+					<ErrorMessage message="Your library could not be loaded. Pull down or tap below to try again." onRetry={refetchSavedBooks} />
 				) : isFetchingSavedBooks ? (
-					<Skeleton />
+					<>
+						{[1, 2, 3, 4].map((item) => (
+							<LibraryBookSkeleton key={item} />
+						))}
+					</>
 				) : displayedBooks.length > 0 ? (
 					displayedBooks.map((book) => (
 						<TouchableOpacity
 							key={book._id}
 							activeOpacity={0.85}
 							className="flex-row mb-5 rounded-2xl p-3"
+							onPress={() => router.push(`/book/${book._id}`)}
 							style={{
 								backgroundColor: theme.colors.surface,
 								borderColor: theme.colors.border,
@@ -97,7 +192,7 @@ export default function Library() {
 								</View>
 
 								<View className="flex-row items-center mt-2">
-									<View
+									{/* <View
 										style={{
 											paddingHorizontal: 10,
 											paddingVertical: 4,
@@ -113,7 +208,11 @@ export default function Library() {
 										>
 											{activeTab}
 										</Text>
-									</View>
+									</View> */}
+
+									<TouchableOpacity className="px-3 py-1 rounded-full" style={{ backgroundColor: theme.colors.primary }} onPress={() => openReader(book)}>
+										<Text className="font-manrope text-xs font-bold text-white">{activeTab === "Reading" ? "Continue" : "Read"}</Text>
+									</TouchableOpacity>
 								</View>
 
 								{activeTab === "Reading" && (
@@ -127,17 +226,22 @@ export default function Library() {
 											<View
 												className="h-full rounded-full"
 												style={{
-													width: `${0}%`,
+													width: `${Math.min(100, Math.max(0, readingProgress[book._id] ?? 0))}%`,
 													backgroundColor: theme.colors.primary,
 												}}
 											/>
 										</View>
+										<Text className="font-manrope text-xs mt-1" style={{ color: theme.colors.textSecondary }}>
+											{Math.round(readingProgress[book._id] ?? 0)}% complete
+										</Text>
 									</View>
 								)}
 							</View>
 
 							<View className="justify-center pl-2">
-								<Ionicons name="ellipsis-vertical" size={18} color={theme.colors.textSecondary} />
+								<TouchableOpacity onPress={() => openBookActions(book)} className="w-9 h-9 items-center justify-center">
+									<Ionicons name="ellipsis-vertical" size={18} color={theme.colors.textSecondary} />
+								</TouchableOpacity>
 							</View>
 						</TouchableOpacity>
 					))
@@ -148,6 +252,9 @@ export default function Library() {
 						<Text className="font-manrope mt-4 text-center text-base font-medium" style={{ color: theme.colors.textSecondary }}>
 							No books in "{activeTab}" yet
 						</Text>
+						<TouchableOpacity className="mt-5 px-5 py-3 rounded-full" style={{ backgroundColor: theme.colors.primary }} onPress={() => router.push("/(tabs)/search")}>
+							<Text className="font-manrope text-white font-bold">Find books</Text>
+						</TouchableOpacity>
 					</View>
 				)}
 

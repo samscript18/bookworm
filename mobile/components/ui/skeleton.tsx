@@ -55,7 +55,7 @@ export const Skeleton = ({ width = "100%", height = 16, borderRadius = 8, style 
 };
 
 export const BookSkeleton = () => {
-	const { theme, isDark } = useThemeStore();
+	const { theme } = useThemeStore();
 	return (
 		<View className="rounded-2xl shadow-sm border p-3 mb-6" style={{ backgroundColor: theme.colors.surface, borderColor: theme.colors.border }}>
 			<View className="flex-row">
@@ -73,8 +73,38 @@ export const BookSkeleton = () => {
 	);
 };
 
+export const BookGridSkeleton = () => (
+	<View className="w-[48%] mb-6">
+		<Skeleton width="100%" height={208} borderRadius={12} style={{ marginBottom: 10 }} />
+		<Skeleton width="85%" height={14} borderRadius={6} style={{ marginBottom: 6 }} />
+		<Skeleton width="55%" height={12} borderRadius={6} />
+	</View>
+);
+
+export const LibraryBookSkeleton = () => {
+	const { theme } = useThemeStore();
+	return (
+		<View className="flex-row mb-5 rounded-2xl p-3" style={{ backgroundColor: theme.colors.surface, borderColor: theme.colors.border, borderWidth: 1 }}>
+			<Skeleton width={80} height={112} borderRadius={12} />
+			<View className="flex-1 ml-4 justify-between">
+				<View>
+					<Skeleton width="78%" height={16} borderRadius={8} style={{ marginBottom: 8 }} />
+					<Skeleton width="48%" height={13} borderRadius={8} />
+				</View>
+				<View>
+					<Skeleton width={84} height={24} borderRadius={999} style={{ marginBottom: 10 }} />
+					<Skeleton width="90%" height={8} borderRadius={999} />
+				</View>
+			</View>
+			<View className="justify-center ml-2">
+				<Skeleton width={24} height={24} borderRadius={12} />
+			</View>
+		</View>
+	);
+};
+
 export const ReviewSkeleton = () => {
-	const { theme, isDark } = useThemeStore();
+	const { theme } = useThemeStore();
 	return (
 		<View className="px-4 mb-4 rounded-2xl p-4" style={{ backgroundColor: theme.colors.surface, borderColor: theme.colors.border, borderWidth: 1 }}>
 			<View className="flex-row items-center mb-3">
@@ -86,6 +116,38 @@ export const ReviewSkeleton = () => {
 			</View>
 			<Skeleton width="100%" height={60} borderRadius={8} style={{ marginBottom: 8 }} />
 			<Skeleton width="40%" height={12} borderRadius={8} />
+		</View>
+	);
+};
+
+export const UserListSkeleton = () => {
+	const { theme } = useThemeStore();
+	return (
+		<View className="px-4">
+			{[1, 2, 3, 4, 5].map((item) => (
+				<View key={item} className="flex-row items-center px-4 py-4 mb-3 rounded-2xl" style={{ backgroundColor: theme.colors.surface, borderColor: theme.colors.border, borderWidth: 1 }}>
+					<Skeleton width={48} height={48} borderRadius={24} />
+					<View className="flex-1 ml-3">
+						<Skeleton width="55%" height={15} borderRadius={8} style={{ marginBottom: 7 }} />
+						<Skeleton width="35%" height={12} borderRadius={8} />
+					</View>
+					<Skeleton width={82} height={34} borderRadius={999} />
+				</View>
+			))}
+		</View>
+	);
+};
+
+export const SettingsProfileSkeleton = () => {
+	const { theme } = useThemeStore();
+	return (
+		<View className="flex-row items-center p-4 rounded-2xl my-5" style={{ backgroundColor: theme.colors.surface, borderColor: theme.colors.border, borderWidth: 1 }}>
+			<Skeleton width={64} height={64} borderRadius={32} />
+			<View className="flex-1 ml-4">
+				<Skeleton width="60%" height={18} borderRadius={8} style={{ marginBottom: 8 }} />
+				<Skeleton width="78%" height={14} borderRadius={8} style={{ marginBottom: 10 }} />
+				<Skeleton width={88} height={14} borderRadius={8} />
+			</View>
 		</View>
 	);
 };

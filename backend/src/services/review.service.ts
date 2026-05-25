@@ -8,6 +8,27 @@ import { NotificationService } from "./notification.service";
 import { NotificationType } from "../models/notification.model";
 
 export class ReviewService {
+	private static async refreshBookStats(bookId: Types.ObjectId | string) {
+		const stats = await Review.aggregate([
+			{ $match: { book: new Types.ObjectId(bookId.toString()) } },
+			{
+				$group: {
+					_id: "$book",
+					averageRating: { $avg: "$rating" },
+					totalReviews: { $sum: 1 },
+				},
+			},
+		]);
+
+		const averageRating = stats[0]?.averageRating ? Number(stats[0].averageRating.toFixed(1)) : 0;
+		const totalReviews = stats[0]?.totalReviews ?? 0;
+
+		await Book.findByIdAndUpdate(bookId, {
+			averageRating,
+			totalReviews,
+		});
+	}
+
 	static async getHomeFeed(data: { userId: string; cursor?: string; limit: number }) {
 		const user = await User.findById(data.userId).select("following savedBooks");
 		if (!user) throw new NotFoundException("User not found", ErrorCode.NOT_FOUND);
@@ -106,13 +127,7 @@ export class ReviewService {
 			...data,
 		});
 
-		const reviews = await Review.find({ book: bookId });
-		const avg = reviews.reduce((acc, curr) => acc + curr.rating, 0) / reviews.length;
-
-		await Book.findByIdAndUpdate(bookId, {
-			averageRating: avg.toFixed(1),
-			$inc: { totalReviews: 1 },
-		});
+		await this.refreshBookStats(review.book as Types.ObjectId);
 
 		await User.findByIdAndUpdate(userId, { $inc: { reviewsCount: 1 } });
 
@@ -136,6 +151,10 @@ export class ReviewService {
 
 		if (!review) throw new NotFoundException("Review not found or unauthorized", ErrorCode.NOT_FOUND);
 
+		if (data.rating !== undefined) {
+			await this.refreshBookStats(review.book as Types.ObjectId);
+		}
+
 		return review;
 	}
 
@@ -144,13 +163,7 @@ export class ReviewService {
 
 		if (!review) throw new NotFoundException("Review not found or unauthorized", ErrorCode.NOT_FOUND);
 
-		const reviews = await Review.find({ book: review.book });
-		const avg = reviews.length > 0 ? reviews.reduce((acc, curr) => acc + curr.rating, 0) / reviews.length : 0;
-
-		await Book.findByIdAndUpdate(review.book, {
-			averageRating: avg.toFixed(1),
-			$inc: { totalReviews: -1 },
-		});
+		await this.refreshBookStats(review.book as Types.ObjectId);
 
 		await User.findByIdAndUpdate(userId, { $inc: { reviewsCount: -1 } });
 
