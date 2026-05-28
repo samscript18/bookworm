@@ -43,6 +43,8 @@ app-example
 /android
 
 
-# google-services.json
+# 
+
 GoogleService-Info.plist
 firebase.json
+google-services.json
