@@ -1,21 +1,49 @@
 import Constants from "expo-constants";
 import * as Device from "expo-device";
-import * as Notifications from "expo-notifications";
+import type * as ExpoNotifications from "expo-notifications";
 import { Platform } from "react-native";
 
-Notifications.setNotificationHandler({
-	handleNotification: async () => ({
-		shouldPlaySound: false,
-		shouldSetBadge: false,
-		shouldShowBanner: true,
-		shouldShowList: true,
-	}),
-});
+type NotificationsModule = typeof ExpoNotifications;
+
+const isAndroidExpoGo = Platform.OS === "android" && Constants.appOwnership === "expo";
+let notificationsModulePromise: Promise<NotificationsModule> | null = null;
+let hasConfiguredNotificationHandler = false;
+let hasWarnedAndroidExpoGo = false;
 
 const getProjectId = () => Constants.expoConfig?.extra?.eas?.projectId ?? Constants.easConfig?.projectId;
 
+const getNotificationsModule = async (): Promise<NotificationsModule | null> => {
+	if (isAndroidExpoGo) {
+		if (!hasWarnedAndroidExpoGo) {
+			hasWarnedAndroidExpoGo = true;
+			console.warn("Android push notifications are not available in Expo Go. Use a development build to test push notifications on Android.");
+		}
+		return null;
+	}
+
+	notificationsModulePromise ??= import("expo-notifications");
+	const Notifications = await notificationsModulePromise;
+
+	if (!hasConfiguredNotificationHandler) {
+		hasConfiguredNotificationHandler = true;
+		Notifications.setNotificationHandler({
+			handleNotification: async () => ({
+				shouldPlaySound: false,
+				shouldSetBadge: false,
+				shouldShowBanner: true,
+				shouldShowList: true,
+			}),
+		});
+	}
+
+	return Notifications;
+};
+
 export const requestNotificationPermission = async () => {
 	try {
+		const Notifications = await getNotificationsModule();
+		if (!Notifications) return null;
+
 		if (!Device.isDevice) {
 			console.warn("Push notifications require a physical device.");
 			return null;
@@ -54,8 +82,11 @@ export const requestNotificationPermission = async () => {
 	}
 };
 
-export const setupNotificationListeners = (onTokenRefreshSync: (token: string) => void) => {
+export const setupNotificationListeners = async (onTokenRefreshSync: (token: string) => void) => {
 	try {
+		const Notifications = await getNotificationsModule();
+		if (!Notifications) return () => {};
+
 		const notificationSubscription = Notifications.addNotificationReceivedListener((notification) => {
 			console.log("Foreground notification:", notification);
 		});

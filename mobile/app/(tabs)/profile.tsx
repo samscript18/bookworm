@@ -86,7 +86,7 @@ export default function Profile() {
 
 	const renderItem = ({ item }: { item: ProfileItem }) => {
 		if (activeTab === "Favorites") {
-			return <UserBookCard {...(item as Book)} />;
+			return <UserBookCard {...(item as Book)} isUser={user?._id === profileId} />;
 		}
 
 		return <UserReviewCard {...(item as Review)} />;

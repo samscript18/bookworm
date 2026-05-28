@@ -1,5 +1,6 @@
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ActivityIndicator, FlatList, Linking, NativeScrollEvent, NativeSyntheticEvent, Text, TouchableOpacity, View } from "react-native";
+import type { ViewToken } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -121,6 +122,8 @@ export default function BookReader() {
 	const listRef = useRef<FlatList<ReadingSection>>(null);
 	const offsetRef = useRef<number>(0);
 	const progressRef = useRef<number>(0);
+	const sectionEndOffsetsRef = useRef<number[]>([]);
+	const totalReadableCharactersRef = useRef<number>(0);
 	const hasRestoredOffsetRef = useRef<boolean>(false);
 	const { bookId, bookTitle } = useLocalSearchParams<{ bookId: string; bookTitle?: string }>();
 	const { theme, isDark } = useThemeStore();
@@ -144,6 +147,15 @@ export default function BookReader() {
 	const title = book?.title ?? bookTitle ?? "Reader";
 	const readingUrl = book?.readingUrl;
 	const readingSections = useMemo<ReadingSection[]>(() => createReadingSections(content), [content]);
+	const sectionEndOffsets = useMemo(() => {
+		let total = 0;
+
+		return readingSections.map((section) => {
+			total += section.text.length;
+			return total;
+		});
+	}, [readingSections]);
+	const totalReadableCharacters = sectionEndOffsets[sectionEndOffsets.length - 1] ?? 0;
 	const paragraphColor = isDark ? "#E5E7EB" : "#2B2A27";
 	const headingColor = isDark ? "#FFFFFF" : "#171412";
 	const readerBackground = isDark ? "#0B0C10" : "#FBF7EF";
@@ -237,6 +249,11 @@ export default function BookReader() {
 	}, [bookId, contentLoadAttempt]);
 
 	useEffect(() => {
+		sectionEndOffsetsRef.current = sectionEndOffsets;
+		totalReadableCharactersRef.current = totalReadableCharacters;
+	}, [sectionEndOffsets, totalReadableCharacters]);
+
+	useEffect(() => {
 		if (!bookId) return;
 
 		const markAsReading = async () => {
@@ -269,19 +286,32 @@ export default function BookReader() {
 	}, [readingSections.length]);
 
 	const handleScroll = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
-		const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
-		const scrollableHeight = contentSize.height - layoutMeasurement.height;
-		if (scrollableHeight <= 0) return;
+		offsetRef.current = event.nativeEvent.contentOffset.y;
+	}, []);
 
-		offsetRef.current = contentOffset.y;
-		const nextProgress = Math.min(100, Math.max(0, (contentOffset.y / scrollableHeight) * 100));
+	const handleViewableItemsChanged = useRef(({ viewableItems }: { viewableItems: ViewToken<ReadingSection>[] }) => {
+		const totalReadableCharacters = totalReadableCharactersRef.current;
+		if (totalReadableCharacters <= 0 || viewableItems.length === 0) return;
+
+		const furthestVisibleIndex = viewableItems.reduce<number>((highestIndex, item) => {
+			return item.index === null || item.index === undefined ? highestIndex : Math.max(highestIndex, item.index);
+		}, -1);
+		if (furthestVisibleIndex < 0) return;
+
+		const sectionEndOffsets = sectionEndOffsetsRef.current;
+		const currentCharacterOffset = sectionEndOffsets[furthestVisibleIndex] ?? 0;
+		const nextProgress = Math.min(100, Math.max(0, (currentCharacterOffset / totalReadableCharacters) * 100));
 		const previousRoundedProgress = Math.round(progressRef.current);
 		progressRef.current = nextProgress;
 
 		if (Math.round(nextProgress) !== previousRoundedProgress) {
 			setProgress(nextProgress);
 		}
-	}, []);
+	}).current;
+
+	const viewabilityConfig = useRef({
+		itemVisiblePercentThreshold: 20,
+	}).current;
 
 	const handlePersistPosition = useCallback(() => {
 		persistReadingPosition(progressRef.current, offsetRef.current);
@@ -320,7 +350,7 @@ export default function BookReader() {
 					<Ionicons name="open-outline" size={20} color={readingUrl ? theme.colors.textPrimary : theme.colors.textMuted} />
 				</TouchableOpacity>
 			</View>
-			<View className="h-1" style={{ backgroundColor: isDark ? "#1B1E28" : "#EFE7D8" }}>
+			<View accessible accessibilityLabel={`${progressLabel} read`} accessibilityRole="progressbar" className="h-1" style={{ backgroundColor: isDark ? "#1B1E28" : "#EFE7D8" }}>
 				<View className="h-full" style={{ width: `${Math.min(100, Math.max(0, progress))}%`, backgroundColor: theme.colors.primary }} />
 			</View>
 
@@ -352,6 +382,8 @@ export default function BookReader() {
 					onMomentumScrollEnd={handlePersistPosition}
 					onScrollEndDrag={handlePersistPosition}
 					onContentSizeChange={restoreReadingOffset}
+					onViewableItemsChanged={handleViewableItemsChanged}
+					viewabilityConfig={viewabilityConfig}
 					data={readingSections}
 					keyExtractor={keyExtractor}
 					initialNumToRender={18}

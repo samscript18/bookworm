@@ -145,11 +145,14 @@ const ReviewCard = ({ review, isRefetching, onPressComment, highlight }: { revie
 
 	const handleShare = async (title: string, content: string) => {
 		try {
-			await Share.share({
-				title: `${review.user.userName}'s review of ${title}`,
-				message: `${title}\n\n${content}\n\nRead more: https://bookworm.onrender.com/review/${review._id}`,
-				url: `https://bookworm.onrender.com/review/${review._id}`,
-			});
+			await Share.share(
+				{
+					title: `${review.user.userName}'s review of ${title}`,
+					message: `${title}\n\n${content}\n\nRead more:`,
+					url: `https://bookworm.onrender.com/review/${review._id}`,
+				},
+				{ subject: `${review.user.userName}'s review of ${title}` },
+			);
 		} catch {
 			toast.error("Unable to open share sheet");
 		}

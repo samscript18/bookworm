@@ -9,7 +9,11 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { saveBook } from "@/lib/services/book.service";
 import { toast } from "@/lib/utils/toast";
 
-const UserBookCard = (book: Book) => {
+interface UserBookCardProps extends Book {
+	isUser?: boolean;
+}
+
+const UserBookCard = (book: UserBookCardProps) => {
 	const { theme } = useThemeStore();
 	const router = useRouter();
 	const queryClient = useQueryClient();
@@ -60,7 +64,7 @@ const UserBookCard = (book: Book) => {
 			</View>
 
 			<View className="justify-center pl-2">
-				<TouchableOpacity disabled={isPending} onPress={confirmRemove} className="w-9 h-9 items-center justify-center">
+				<TouchableOpacity disabled={book.isUser !== true || isPending} onPress={confirmRemove} className="w-9 h-9 items-center justify-center">
 					<Ionicons name="ellipsis-vertical" size={18} color={theme.colors.textSecondary} />
 				</TouchableOpacity>
 			</View>

@@ -49,13 +49,23 @@ const NotificationInitializer = () => {
 			}
 		});
 
-		const cleanup = setupNotificationListeners((newToken: string) => {
+		let isMounted = true;
+		let cleanup = () => {};
+		setupNotificationListeners((newToken: string) => {
 			if (!newToken || newToken === lastTokenRef.current) return;
 			lastTokenRef.current = newToken;
 			syncFcmToken(newToken, platform, updateToken);
+		}).then((removeListeners) => {
+			if (isMounted) {
+				cleanup = removeListeners;
+				return;
+			}
+
+			removeListeners();
 		});
 
 		return () => {
+			isMounted = false;
 			cleanup();
 			appStateSubscription.remove();
 		};
