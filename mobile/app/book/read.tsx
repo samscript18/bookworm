@@ -75,6 +75,68 @@ const normalizeTxtContent = (content: string): string => {
 		.trim();
 };
 
+const decodeHtmlEntities = (content: string): string => {
+	const entities: Record<string, string> = {
+		amp: "&",
+		apos: "'",
+		gt: ">",
+		lt: "<",
+		nbsp: " ",
+		quot: '"',
+	};
+
+	return content.replace(/&(#(\d+)|#x([\da-f]+)|[a-z]+);/gi, (entity, token: string, decimal?: string, hex?: string) => {
+		if (decimal) return String.fromCharCode(Number(decimal));
+		if (hex) return String.fromCharCode(parseInt(hex, 16));
+
+		return entities[token.toLowerCase()] ?? entity;
+	});
+};
+
+const normalizeHtmlContent = (content: string): string => {
+	return decodeHtmlEntities(
+		content
+			.replace(/<script[\s\S]*?<\/script>/gi, "")
+			.replace(/<style[\s\S]*?<\/style>/gi, "")
+			.replace(/<\/(p|div|h[1-6]|li|section|article|blockquote)>/gi, "\n\n")
+			.replace(/<br\s*\/?>/gi, "\n")
+			.replace(/<[^>]+>/g, " ")
+			.replace(/[ \t]+/g, " "),
+	);
+};
+
+const extractGutenbergId = (readingUrl?: string, externalId?: string): string | undefined => {
+	const externalIdMatch = externalId?.match(/gutendex:(\d+)/i);
+	if (externalIdMatch?.[1]) return externalIdMatch[1];
+
+	const urlMatch = readingUrl?.match(/(?:\/ebooks\/|\/files\/|\/epub\/|pg)(\d+)/i);
+	return urlMatch?.[1];
+};
+
+const buildReadingUrlCandidates = (readingUrl?: string, externalId?: string): string[] => {
+	const candidates = new Set<string>();
+	const addCandidate = (url?: string) => {
+		if (url) candidates.add(url.replace(/^http:\/\//i, "https://"));
+	};
+
+	addCandidate(readingUrl);
+
+	if (readingUrl?.endsWith(".zip")) {
+		addCandidate(readingUrl.replace(/\.zip$/i, ".txt"));
+		addCandidate(readingUrl.replace(/-0\.zip$/i, "-0.txt"));
+	}
+
+	const gutenbergId = extractGutenbergId(readingUrl, externalId);
+	if (gutenbergId) {
+		addCandidate(`https://www.gutenberg.org/cache/epub/${gutenbergId}/pg${gutenbergId}.txt`);
+		addCandidate(`https://www.gutenberg.org/files/${gutenbergId}/${gutenbergId}-0.txt`);
+		addCandidate(`https://www.gutenberg.org/files/${gutenbergId}/${gutenbergId}.txt`);
+		addCandidate(`https://www.gutenberg.org/ebooks/${gutenbergId}.txt.utf-8`);
+	}
+
+	return [...candidates];
+};
+
 const readJsonMap = async <T extends Record<string, unknown>>(key: string): Promise<T> => {
 	const raw = await getSecureItem(key);
 	if (!raw) return {} as T;
@@ -146,6 +208,7 @@ export default function BookReader() {
 
 	const title = book?.title ?? bookTitle ?? "Reader";
 	const readingUrl = book?.readingUrl;
+	const readingUrlCandidates = useMemo(() => buildReadingUrlCandidates(book?.readingUrl, book?.externalId), [book?.externalId, book?.readingUrl]);
 	const readingSections = useMemo<ReadingSection[]>(() => createReadingSections(content), [content]);
 	const sectionEndOffsets = useMemo(() => {
 		let total = 0;
@@ -192,28 +255,39 @@ export default function BookReader() {
 	);
 
 	useEffect(() => {
-		if (!readingUrl) return;
+		if (readingUrlCandidates.length === 0) return;
 
 		let mounted = true;
 
 		const loadContent = async () => {
 			setIsFetchingContent(true);
 			setContentError(false);
+			setContent("");
 
 			try {
-				const response = await axios.get<string>(readingUrl, {
-					responseType: "text",
-					transformResponse: [(data) => data],
-					headers: {
-						Accept: "text/plain; charset=utf-8, text/plain, */*",
-					},
-					timeout: 20000,
-				});
+				for (const candidateUrl of readingUrlCandidates) {
+					try {
+						const response = await axios.get<string>(candidateUrl, {
+							responseType: "text",
+							transformResponse: [(data) => data],
+							headers: {
+								Accept: "text/plain; charset=utf-8, text/html, */*",
+							},
+							timeout: 20000,
+						});
 
-				const text = typeof response.data === "string" ? response.data : String(response.data);
-				const readableContent = normalizeTxtContent(stripGutenbergBoilerplate(text));
-				if (!readableContent) throw new Error("Book content is empty");
-				if (mounted) setContent(readableContent);
+						const text = typeof response.data === "string" ? response.data : String(response.data);
+						const normalizedContent = /<html|<!doctype|<body/i.test(text.slice(0, 800)) ? normalizeHtmlContent(text) : text;
+						const readableContent = normalizeTxtContent(stripGutenbergBoilerplate(normalizedContent));
+						if (readableContent.length < 200) throw new Error("Book content is empty");
+						if (mounted) setContent(readableContent);
+						return;
+					} catch {
+						// Try the next known Gutenberg text URL shape before surfacing the error.
+					}
+				}
+
+				throw new Error("Book content could not be loaded");
 			} catch {
 				if (mounted) setContentError(true);
 			} finally {
@@ -226,7 +300,7 @@ export default function BookReader() {
 		return () => {
 			mounted = false;
 		};
-	}, [contentLoadAttempt, readingUrl]);
+	}, [contentLoadAttempt, readingUrlCandidates]);
 
 	useEffect(() => {
 		if (!bookId) return;

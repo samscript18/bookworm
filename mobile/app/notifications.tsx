@@ -198,6 +198,13 @@ const Notifications = () => {
 						</View>
 					</Pressable>
 				))}
+				{notifications.length === 0 && (
+					<View className="flex-1 justify-center items-center mt-[70%]">
+						<Text className="font-manrope text-lg mt-4" style={{ color: theme.colors.textSecondary }}>
+							No notifications yet
+						</Text>
+					</View>
+				)}
 			</ScrollView>
 		</SafeAreaView>
 	);

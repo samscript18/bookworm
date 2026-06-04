@@ -31,7 +31,13 @@ const SettingsScreen = () => {
 		},
 	});
 
-	const { isFetching: isFetchingProfile, isRefetching, data: profile, error: profileError, refetch } = useQuery({
+	const {
+		isFetching: isFetchingProfile,
+		isRefetching,
+		data: profile,
+		error: profileError,
+		refetch,
+	} = useQuery({
 		queryKey: ["profile"],
 		queryFn: () => getProfile(),
 	});
@@ -118,8 +124,9 @@ const SettingsScreen = () => {
 					onPress={async () => {
 						const token = await getSecureItem(STORAGE_KEYS.FCM_TOKEN);
 						const platform = Platform.OS === "ios" ? "ios" : "android";
-						if (!token || !platform) return;
-						await _logout({ token, platform });
+						// if (!token || !platform) return;
+						// await _logout({ token, platform });
+						await _logout({ token: token || "", platform });
 					}}
 				>
 					{isloggingOut ? (

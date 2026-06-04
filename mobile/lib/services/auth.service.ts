@@ -81,7 +81,7 @@ export const googleAuth = async () => {
 
 export const logout = async (data: LogoutDto) => {
 	try {
-		await removeFcmToken({ fcmToken: data.token, platform: data.platform });
+		// await removeFcmToken({ fcmToken: data.token, platform: data.platform });
 		await signOutFromGoogle();
 		return true;
 	} catch (error) {
