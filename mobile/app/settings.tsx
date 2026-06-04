@@ -124,9 +124,8 @@ const SettingsScreen = () => {
 					onPress={async () => {
 						const token = await getSecureItem(STORAGE_KEYS.FCM_TOKEN);
 						const platform = Platform.OS === "ios" ? "ios" : "android";
-						// if (!token || !platform) return;
-						// await _logout({ token, platform });
-						await _logout({ token: token || "", platform });
+						if (!token || !platform) return;
+						await _logout({ token, platform });
 					}}
 				>
 					{isloggingOut ? (
