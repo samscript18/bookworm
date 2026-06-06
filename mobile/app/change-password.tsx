@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView } from "react-native";
-import { Link, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useAuthStore } from "@/store/useAuthStore";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "@/lib/utils/toast";
 import { useThemeStore } from "@/store/useThemeStore";
@@ -35,7 +34,7 @@ const ResetPassword = () => {
 		{ label: "One special character", met: /[^a-zA-Z0-9]/.test(passwordValue) },
 	];
 
-	const { mutateAsync: _changePassword, isPending: isChangePasswordPending } = useMutation({
+	const { mutateAsync: _changePassword } = useMutation({
 		mutationKey: ["change-password"],
 		mutationFn: changePassword,
 		onSuccess: () => {

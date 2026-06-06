@@ -47,14 +47,7 @@ const Notifications = () => {
 		},
 	});
 
-	const {
-		data,
-		fetchNextPage,
-		hasNextPage,
-		isFetchingNextPage,
-		error: notificationsError,
-		refetch: refetchNotifications,
-	} = useInfiniteQuery({
+	const { data } = useInfiniteQuery({
 		queryKey: ["all-notifications"],
 		initialPageParam: undefined as string | undefined,
 		queryFn: ({ pageParam }) =>
@@ -101,7 +94,7 @@ const Notifications = () => {
 					<Pressable
 						key={notification.notificationId}
 						onPress={async () => {
-							const [entityId, type, _] = notification.id.split("-");
+							const [entityId, type] = notification.id.split("-");
 							if (notification.type === "follow") {
 								router.push({ pathname: "/(tabs)/profile", params: { userId: notification.userId } });
 							} else if (type === "comment.like" || type === "comment.reply") {
@@ -167,7 +160,7 @@ const Notifications = () => {
 								</Text>
 								{notification.quote && (
 									<Text className="font-manrope italic mt-1" style={{ color: theme.colors.textSecondary }} numberOfLines={2}>
-										"{notification.quote}"
+										{`"${notification.quote}"`}
 									</Text>
 								)}
 								<Text className="font-manrope text-xs mt-1" style={{ color: theme.colors.textSecondary }}>

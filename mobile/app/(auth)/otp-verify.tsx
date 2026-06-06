@@ -9,8 +9,8 @@ import { useThemeStore } from "@/store/useThemeStore";
 const OtpVerification = () => {
 	const router = useRouter();
 	const { theme, isDark } = useThemeStore();
-	const [code, setCode] = useState<Array<string>>(["", "", "", "", "", ""]);
-	const inputRefs = useRef<Array<TextInput | null>>([]);
+	const [code, setCode] = useState<string[]>(["", "", "", "", "", ""]);
+	const inputRefs = useRef<(TextInput | null)[]>([]);
 	const [isFocused, setIsFocused] = useState<{ [key: number]: boolean }>({});
 	const { setForgotPasswordToken, setPasswordResetStep } = useAuthStore();
 

@@ -4,10 +4,9 @@ import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Link, useLocalSearchParams, useRouter } from "expo-router";
 import { useThemeStore } from "@/store/useThemeStore";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient, useInfiniteQuery, useMutation } from "@tanstack/react-query";
 import { getTrendingBooks } from "@/lib/services/book.service";
 import { useAuthStore } from "@/store/useAuthStore";
-import { useInfiniteQuery } from "@tanstack/react-query";
 import { addCommentToReview, getHomeFeed, getReviewComments } from "@/lib/services/review.service";
 import ReviewCard from "@/components/ui/review-card";
 import { TrendingBookSkeleton, ReviewSkeleton } from "@/components/ui/skeleton";
@@ -17,7 +16,6 @@ import ActionSheet, { ActionSheetRef } from "react-native-actions-sheet";
 import { Comment } from "@/types/comment/comment";
 import { getRelativeTime } from "@/lib/utils";
 import { AddCommentDto } from "@/types/comment/comment.dto";
-import { useMutation } from "@tanstack/react-query";
 import { toast } from "@/lib/utils/toast";
 import { reactToComment } from "@/lib/services/comment.service";
 
@@ -173,22 +171,26 @@ const HomeFeed = () => {
 
 	type CommentWithUser = Comment & { user: string | { _id: string; userName: string; profileImage?: string } };
 
-	const commentItems = (reviewComments ?? []) as CommentWithUser[];
-	const parentComments = commentItems.filter((comment) => !comment.parentComment);
-	const repliesByParent = commentItems.reduce<Record<string, Comment[]>>((acc, comment) => {
-		if (comment.parentComment) {
-			const parentId = comment.parentComment;
-			acc[parentId] = acc[parentId] ? [...acc[parentId], comment] : [comment];
-		}
-		return acc;
-	}, {});
+	const commentItems = useMemo(() => (reviewComments ?? []) as CommentWithUser[], [reviewComments]);
+	const parentComments = useMemo(() => commentItems.filter((comment) => !comment.parentComment), [commentItems]);
+	const repliesByParent = useMemo(
+		() =>
+			commentItems.reduce<Record<string, Comment[]>>((acc, comment) => {
+				if (comment.parentComment) {
+					const parentId = comment.parentComment;
+					acc[parentId] = acc[parentId] ? [...acc[parentId], comment] : [comment];
+				}
+				return acc;
+			}, {}),
+		[commentItems],
+	);
 
-	const getCommentUser = (comment: CommentWithUser) => {
+	const getCommentUser = useCallback((comment: CommentWithUser) => {
 		if (typeof comment.user === "string") {
 			return { _id: comment.user, userName: "User", profileImage: undefined };
 		}
 		return comment.user as unknown as { _id: string; userName: string; profileImage?: string };
-	};
+	}, []);
 
 	const hasLikedComment = (comment: Comment) => (user?._id ? comment.likes.includes(user._id) : false);
 
@@ -275,9 +277,9 @@ const HomeFeed = () => {
 
 		const targetUser = getCommentUser(target);
 		setReplyTo({ id: normalizedCommentId, userName: targetUser.userName });
-	}, [normalizedCommentId, reviewComments, commentItems, replyTo?.id]);
+	}, [normalizedCommentId, reviewComments, commentItems, replyTo?.id, getCommentUser]);
 
-	const ListHeader = () => {
+	const ListHeader = useCallback(() => {
 		return (
 			<View className="mb-6">
 				<View className="flex-row justify-between items-center px-4 pt-2 mb-4">
@@ -339,24 +341,23 @@ const HomeFeed = () => {
 				{trendingBooksError && <ErrorBanner message="Failed to load trending books" onDismiss={() => refetchTrending()} />}
 			</View>
 		);
-	};
+	}, [
+		isFetchingTrendingBooks,
+		trendingBooks,
+		trendingBooksError,
+		unreadNotificationsCount,
+		user?.firstName,
+		user?.userName,
+		user?.profileImage,
+		theme.colors.primary,
+		theme.colors.textPrimary,
+		theme.colors.textSecondary,
+		theme.colors.surfaceMuted,
+		router,
+		refetchTrending,
+	]);
 
-	const listHeader = useMemo(
-		() => <ListHeader />,
-		[
-			isFetchingTrendingBooks,
-			trendingBooks,
-			trendingBooksError,
-			unreadNotificationsCount,
-			user?.firstName,
-			user?.userName,
-			user?.profileImage,
-			theme.colors.primary,
-			theme.colors.textPrimary,
-			theme.colors.textSecondary,
-			theme.colors.surfaceMuted,
-		],
-	);
+	const listHeader = useMemo(() => <ListHeader />, [ListHeader]);
 
 	const renderItem = useCallback(
 		({ item }: { item: (typeof reviews)[number] }) =>
@@ -365,7 +366,7 @@ const HomeFeed = () => {
 					<ReviewCard review={item} isRefetching={isRefetching} onPressComment={openCommentsSheet} highlight={item._id === highlightedReviewId} />
 				</View>
 			) : null,
-		[highlightedReviewId, isRefetching, openCommentsSheet, queryClient],
+		[highlightedReviewId, isRefetching, openCommentsSheet],
 	);
 
 	const keyExtractor = useCallback((item: (typeof reviews)[number]) => item._id, []);

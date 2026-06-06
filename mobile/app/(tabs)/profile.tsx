@@ -197,7 +197,12 @@ export default function Profile() {
 				<ErrorMessage
 					message={`Failed to load ${activeTab.toLowerCase()}`}
 					onRetry={() => {
-						activeTab === "Reviews" ? refetchReviews() : refetchSaved();
+						if (activeTab === "Reviews") {
+							refetchReviews();
+							return;
+						}
+
+						refetchSaved();
 					}}
 				/>
 			</SafeAreaView>

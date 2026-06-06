@@ -40,7 +40,7 @@ const ResetPassword = () => {
 		{ label: "One special character", met: /[^a-zA-Z0-9]/.test(passwordValue) },
 	];
 
-	const { mutateAsync: _resetPassword, isPending: isResetPasswordPending } = useMutation({
+	const { mutateAsync: _resetPassword } = useMutation({
 		mutationKey: ["auth", "reset-password"],
 		mutationFn: resetPassword,
 	});

@@ -10,7 +10,7 @@ interface ErrorMessageProps {
 }
 
 export const ErrorMessage = ({ message = "Something went wrong. Please try again.", onRetry, showRetry = true }: ErrorMessageProps) => {
-	const { theme, isDark } = useThemeStore();
+	const { theme } = useThemeStore();
 
 	return (
 		<View className="flex-1 items-center justify-center px-4 py-8">
@@ -30,7 +30,7 @@ export const ErrorMessage = ({ message = "Something went wrong. Please try again
 };
 
 export const ErrorBanner = ({ message = "Something went wrong", onDismiss }: { message?: string; onDismiss?: () => void }) => {
-	const { theme, isDark } = useThemeStore();
+	const { isDark } = useThemeStore();
 
 	return (
 		<View className="px-4 py-3 rounded-lg mb-4 flex-row items-center justify-between" style={{ backgroundColor: isDark ? "#4A2C2C" : "#FEE2E2" }}>

@@ -10,8 +10,6 @@ let notificationsModulePromise: Promise<NotificationsModule> | null = null;
 let hasConfiguredNotificationHandler = false;
 let hasWarnedAndroidExpoGo = false;
 
-const getProjectId = () => Constants.expoConfig?.extra?.eas?.projectId ?? Constants.easConfig?.projectId;
-
 const getNotificationsModule = async (): Promise<NotificationsModule | null> => {
 	if (isAndroidExpoGo) {
 		if (!hasWarnedAndroidExpoGo) {
@@ -68,13 +66,7 @@ export const requestNotificationPermission = async () => {
 
 		if (finalStatus !== "granted") return null;
 
-		const projectId = getProjectId();
-		if (!projectId) {
-			console.warn("Expo push token requires an EAS project ID.");
-			return null;
-		}
-
-		const token = await Notifications.getExpoPushTokenAsync({ projectId });
+		const token = await Notifications.getDevicePushTokenAsync();
 		return token.data;
 	} catch (error) {
 		console.warn("Notification permission failed", error);

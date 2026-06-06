@@ -250,7 +250,7 @@ export default function Library() {
 						<Ionicons name="book-outline" size={70} color={isDark ? "#2A2D38" : "#E9E9EA"} />
 
 						<Text className="font-manrope mt-4 text-center text-base font-medium" style={{ color: theme.colors.textSecondary }}>
-							No books in "{activeTab}" yet
+							{`No books in "${activeTab}" yet`}
 						</Text>
 						<TouchableOpacity className="mt-5 px-5 py-3 rounded-full" style={{ backgroundColor: theme.colors.primary }} onPress={() => router.push("/(tabs)/search")}>
 							<Text className="font-manrope text-white font-bold">Find books</Text>

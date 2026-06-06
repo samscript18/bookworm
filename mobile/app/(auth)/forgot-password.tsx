@@ -67,7 +67,7 @@ const ForgotPassword = () => {
 					Forgot Password?
 				</Text>
 				<Text className="font-manrope text-base text-center px-4 mb-8 leading-6" style={{ color: theme.colors.textSecondary }}>
-					Don't worry! Enter your email address and we'll send you a code to reset your password.
+					{"Don't worry! Enter your email address and we'll send you a code to reset your password."}
 				</Text>
 
 				<Controller

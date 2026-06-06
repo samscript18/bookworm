@@ -196,7 +196,6 @@ export const TrendingBookSkeleton = () => {
 };
 
 export const BookDetailsSkeleton = () => {
-	const { theme } = useThemeStore();
 	return (
 		<View className="items-center px-4 pt-2">
 			<Skeleton width={240} height={320} borderRadius={14} style={{ marginBottom: 24 }} />

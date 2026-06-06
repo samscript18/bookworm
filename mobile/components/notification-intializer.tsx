@@ -31,7 +31,7 @@ const NotificationInitializer = () => {
 			hasInitialized.current = true;
 			try {
 				const token = await requestNotificationPermission();
-				console.log("Expo push token:", token);
+				console.log("Device push token:", token);
 
 				if (token && token !== lastTokenRef.current) {
 					lastTokenRef.current = token;
